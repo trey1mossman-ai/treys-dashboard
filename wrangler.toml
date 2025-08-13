@@ -1,6 +1,5 @@
 name = "agenda-dashboard"
 compatibility_date = "2024-01-01"
-account_id = "13bc78344aaf61b467e927deabdc3096"
 pages_build_output_dir = "dist"
 
 # D1 Database
@@ -26,10 +25,6 @@ VITE_PUBLIC_ORIGIN = "https://agenda-dashboard.pages.dev"
 # [[routes]]
 # pattern = "agenda.yourdomain.com/*"
 # zone_name = "yourdomain.com"
-
-# Deployment configuration
-[build]
-command = "npm run build"
 
 # Development settings
 [dev]

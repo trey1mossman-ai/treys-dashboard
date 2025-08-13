@@ -1,0 +1,22 @@
+name = "agenda-dashboard"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "dist"
+
+# D1 Database
+[[d1_databases]]
+binding = "DB"
+database_name = "agenda-dashboard"
+database_id = "6b67d1d6-bbec-4a13-922e-a6e8dd24c533"
+
+# KV Namespaces
+[[kv_namespaces]]
+binding = "TRAINER_KV"
+id = "ae4c22b7500545ce99f89cefd1b88644"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "ed2c6b469db64da5908ca397b1365406"
+
+# Environment variables (non-sensitive)
+[vars]
+VITE_PUBLIC_ORIGIN = "https://agenda-dashboard.pages.dev"
