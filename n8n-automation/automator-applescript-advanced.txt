@@ -1,0 +1,90 @@
+-- COPY THIS INTO AUTOMATOR'S "RUN APPLESCRIPT" ACTION
+-- This is the full-featured version with error handling and options
+
+on run {input, parameters}
+    try
+        -- Configuration
+        set projectPath to "/Volumes/Trey's Macbook TB/Agenda for the day/n8n-automation"
+        set n8nPort to "5678"
+        
+        -- Check if n8n is already running
+        set n8nRunning to do shell script "ps aux | grep -v grep | grep -c 'n8n start' || echo 0"
+        
+        if n8nRunning is not "0" then
+            -- n8n is already running, ask what to do
+            set dialogResult to display dialog "n8n is already running. What would you like to do?" buttons {"Open n8n", "Restart", "Cancel"} default button "Open n8n" with icon caution
+            
+            if button returned of dialogResult is "Open n8n" then
+                -- Just open the browser
+                tell application "Safari"
+                    open location "http://localhost:" & n8nPort
+                end tell
+                return
+            else if button returned of dialogResult is "Restart" then
+                -- Stop existing n8n
+                do shell script "cd '" & projectPath & "' && ./stop-n8n-tunnel.sh"
+                delay 2
+            else
+                return -- Cancel
+            end if
+        end if
+        
+        -- Show starting notification
+        display notification "Starting n8n with internet tunnel..." with title "n8n Automation" subtitle "Please wait..."
+        
+        -- Start n8n in Terminal
+        tell application "Terminal"
+            -- Check if Terminal is running
+            if not (exists window 1) then
+                -- Create new window if no windows exist
+                do script ""
+            end if
+            
+            -- Run the start script in new tab
+            set newTab to do script "cd '" & projectPath & "' && ./start-n8n-tunnel.sh"
+            
+            -- Bring Terminal to front briefly to show the URL
+            activate
+            
+            -- Set the Terminal window title
+            do script "echo -n -e \"\\033]0;n8n Automation\\007\"" in newTab
+        end tell
+        
+        -- Wait for n8n to start
+        delay 5
+        
+        -- Check if n8n started successfully
+        repeat 10 times
+            try
+                do shell script "curl -s http://localhost:" & n8nPort & " > /dev/null"
+                exit repeat
+            on error
+                delay 2
+            end try
+        end repeat
+        
+        -- Open n8n in browser
+        tell application "Safari"
+            -- Check if Safari is running
+            if not (exists window 1) then
+                make new document
+            end if
+            
+            -- Open n8n
+            open location "http://localhost:" & n8nPort
+            activate
+        end tell
+        
+        -- Final notification
+        display notification "n8n is ready! Check Terminal window for the public tunnel URL." with title "n8n Automation" subtitle "✅ Successfully started" sound name "Glass"
+        
+        -- Optionally minimize Terminal after showing URL
+        delay 3
+        tell application "Terminal"
+            set miniaturized of window 1 to true
+        end tell
+        
+    on error errMsg
+        display alert "Error starting n8n" message errMsg as critical
+    end try
+end run

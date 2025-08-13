@@ -1,0 +1,17 @@
+#!/bin/bash
+# COPY THIS INTO AUTOMATOR'S "RUN SHELL SCRIPT" ACTION
+
+# Change to the n8n automation directory
+cd "/Volumes/Trey's Macbook TB/Agenda for the day/n8n-automation"
+
+# Start n8n with tunnel in a new Terminal window
+osascript -e 'tell app "Terminal" to do script "cd \"/Volumes/Trey'"'"'s Macbook TB/Agenda for the day/n8n-automation\" && ./start-n8n-tunnel.sh"'
+
+# Wait a moment for services to start
+sleep 5
+
+# Open n8n in browser
+open "http://localhost:5678"
+
+# Show notification
+osascript -e 'display notification "n8n is starting... Check Terminal for the public URL" with title "n8n Automation" sound name "Glass"'

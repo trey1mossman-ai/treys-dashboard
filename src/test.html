@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test</title>
+</head>
+<body>
+    <h1>Testing if server works</h1>
+    <script>
+        fetch('http://localhost:5174/src/main.tsx')
+            .then(r => r.text())
+            .then(text => {
+                console.log('Main.tsx loads:', text.includes('Routes'));
+            });
+    </script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+{
+  "name": "Agenda Dashboard - Email Digest Webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "n8n/email-digest",
+        "responseMode": "onReceived",
+        "responseData": "allEntries",
+        "options": {}
+      },
+      "id": "webhook_node",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  emails: [\n    {\n      id: 'email-1',\n      from: 'sender@example.com',\n      subject: 'Test Email 1',\n      time: new Date().toISOString(),\n      snippet: 'This is a test email...'\n    },\n    {\n      id: 'email-2',\n      from: 'another@example.com',\n      subject: 'Test Email 2',\n      time: new Date().toISOString(),\n      snippet: 'Another test email...'\n    }\n  ]\n}) }}",
+        "options": {}
+      },
+      "id": "respond_node",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [450, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "1",
+  "triggerCount": 1
+}

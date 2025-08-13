@@ -1,0 +1,98 @@
+{
+  "name": "Agenda Dashboard - Send Email Webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "n8n/send-email",
+        "responseMode": "onReceived",
+        "responseData": "allEntries",
+        "options": {}
+      },
+      "id": "webhook_1",
+      "name": "Webhook - Email Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "email-send"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract email data from webhook\nconst emailData = items[0].json;\n\n// Validate required fields\nif (!emailData.to || !emailData.subject) {\n  throw new Error('Missing required fields: to and subject');\n}\n\n// Format for email sending\nreturn [{\n  json: {\n    to: emailData.to,\n    subject: emailData.subject,\n    body: emailData.body || emailData.text || '',\n    from: emailData.from || 'noreply@yourdomain.com',\n    html: emailData.html || null\n  }\n}];"
+      },
+      "id": "function_1",
+      "name": "Process Email Data",
+      "type": "n8n-nodes-base.functionItem",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{$json.to}}",
+        "subject": "={{$json.subject}}",
+        "message": "={{$json.body}}",
+        "options": {}
+      },
+      "id": "gmail_1",
+      "name": "Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [650, 300],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "1",
+          "name": "Gmail account"
+        }
+      },
+      "disabled": true,
+      "notes": "Enable this node and configure Gmail OAuth2 to send real emails"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  success: true,\n  message: 'Email sent successfully',\n  to: $node['Process Email Data'].json.to,\n  subject: $node['Process Email Data'].json.subject,\n  timestamp: new Date().toISOString(),\n  // Uncomment when using real Gmail:\n  // messageId: $node['Gmail'].json.id\n}) }}",
+        "options": {}
+      },
+      "id": "respond_1",
+      "name": "Respond - Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Email Request": {
+      "main": [
+        [
+          {
+            "node": "Process Email Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Email Data": {
+      "main": [
+        [
+          {
+            "node": "Respond - Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "instanceId": "agenda-dashboard"
+  },
+  "tags": [],
+  "triggerCount": 1
+}

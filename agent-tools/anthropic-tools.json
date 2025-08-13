@@ -1,0 +1,48 @@
+{
+  "tools": [
+    {
+      "name": "agent_command",
+      "description": "Execute operations on the app (agenda, actions, notes, trainer, tasks, metrics, calendar)",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "tool": {
+            "type": "string",
+            "description": "The specific tool to execute",
+            "enum": [
+              "agenda.create",
+              "agenda.update",
+              "agenda.delete",
+              "agenda.listByDate",
+              "actions.create",
+              "actions.exec",
+              "notes.create",
+              "notes.archive",
+              "notes.position",
+              "tasks.create",
+              "tasks.toggle",
+              "tasks.reorder",
+              "trainer.upload",
+              "trainer.log",
+              "comms.recent",
+              "metrics.update",
+              "calendar.sync"
+            ]
+          },
+          "args": {
+            "type": "object",
+            "description": "Tool-specific arguments",
+            "additionalProperties": true
+          },
+          "dryRun": {
+            "type": "boolean",
+            "description": "If true, validate without executing",
+            "default": false
+          }
+        },
+        "required": ["tool", "args"]
+      }
+    }
+  ],
+  "system_prompt_addition": "You have access to the agent_command tool to control the app. When using it:\n\n1. For agenda.create: Provide date (YYYY-MM-DD), title, start_ts, end_ts (Unix seconds). Ensure end_ts > start_ts.\n2. For agenda.update: Provide id and patch object with fields to update.\n3. For agenda.delete: Provide id.\n4. For agenda.listByDate: Provide date (YYYY-MM-DD).\n5. For actions.create: Provide name, webhook_url, optionally method, headers, default_payload.\n6. For actions.exec: Provide id, optionally payload.\n7. For notes.create: Provide body, optionally tag.\n8. For notes.archive: Provide id.\n9. For notes.position: Provide id, x, y, w, h.\n10. For tasks.create: Provide title, optionally due_ts, source.\n11. For tasks.toggle: Provide id, status (pending/completed/archived).\n12. For tasks.reorder: Provide ids array.\n13. For trainer.upload: Provide date, optionally title, blocks array.\n14. For trainer.log: Provide entries array with date, exercise, set_number, reps, optionally load, rpe, notes.\n15. For comms.recent: Provide channel (email/sms/whatsapp), optionally limit.\n16. For metrics.update: Provide date, optionally work_actual, gym_actual, nutrition_actual.\n17. For calendar.sync: Provide agenda_id, action (create/update/delete).\n\nAlways use minimal valid arguments. If a command returns RETRY error, back off and retry up to 3 times."
+}

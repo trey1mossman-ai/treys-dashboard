@@ -1,0 +1,225 @@
+{
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "agent_command",
+        "description": "Execute operations on the app (agenda, actions, notes, trainer, tasks, metrics, calendar). Always prefer minimal valid arguments.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "tool": {
+              "type": "string",
+              "description": "The specific tool to execute",
+              "enum": [
+                "agenda.create",
+                "agenda.update",
+                "agenda.delete",
+                "agenda.listByDate",
+                "actions.create",
+                "actions.exec",
+                "notes.create",
+                "notes.archive",
+                "notes.position",
+                "tasks.create",
+                "tasks.toggle",
+                "tasks.reorder",
+                "trainer.upload",
+                "trainer.log",
+                "comms.recent",
+                "metrics.update",
+                "calendar.sync"
+              ]
+            },
+            "args": {
+              "type": "object",
+              "description": "Tool-specific arguments",
+              "additionalProperties": true,
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                  "description": "Date in YYYY-MM-DD format"
+                },
+                "id": {
+                  "type": "string",
+                  "description": "UUID identifier"
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Title or name"
+                },
+                "start_ts": {
+                  "type": "integer",
+                  "description": "Start timestamp in Unix seconds"
+                },
+                "end_ts": {
+                  "type": "integer",
+                  "description": "End timestamp in Unix seconds (must be > start_ts)"
+                },
+                "tag": {
+                  "type": "string",
+                  "description": "Category tag"
+                },
+                "notes": {
+                  "type": "string",
+                  "description": "Additional notes or description"
+                },
+                "patch": {
+                  "type": "object",
+                  "description": "Fields to update",
+                  "additionalProperties": true
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Action name"
+                },
+                "webhook_url": {
+                  "type": "string",
+                  "description": "Webhook URL for action"
+                },
+                "method": {
+                  "type": "string",
+                  "enum": ["GET", "POST", "PUT", "DELETE"],
+                  "description": "HTTP method"
+                },
+                "headers": {
+                  "type": "object",
+                  "description": "HTTP headers",
+                  "additionalProperties": true
+                },
+                "default_payload": {
+                  "type": "object",
+                  "description": "Default payload for action",
+                  "additionalProperties": true
+                },
+                "payload": {
+                  "type": "object",
+                  "description": "Execution payload",
+                  "additionalProperties": true
+                },
+                "body": {
+                  "type": "string",
+                  "description": "Note content"
+                },
+                "x": {
+                  "type": "number",
+                  "description": "X coordinate"
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y coordinate"
+                },
+                "w": {
+                  "type": "number",
+                  "description": "Width"
+                },
+                "h": {
+                  "type": "number",
+                  "description": "Height"
+                },
+                "due_ts": {
+                  "type": "integer",
+                  "description": "Due timestamp in Unix seconds"
+                },
+                "source": {
+                  "type": "string",
+                  "description": "Task source"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": ["pending", "completed", "archived"],
+                  "description": "Task status"
+                },
+                "ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Array of IDs"
+                },
+                "blocks": {
+                  "type": "array",
+                  "description": "Training session blocks",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                },
+                "entries": {
+                  "type": "array",
+                  "description": "Training log entries",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "date": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "exercise": {
+                        "type": "string"
+                      },
+                      "set_number": {
+                        "type": "integer"
+                      },
+                      "reps": {
+                        "type": "integer"
+                      },
+                      "load": {
+                        "type": "number"
+                      },
+                      "rpe": {
+                        "type": "number"
+                      },
+                      "notes": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["date", "exercise", "set_number", "reps"]
+                  }
+                },
+                "channel": {
+                  "type": "string",
+                  "enum": ["email", "sms", "whatsapp"],
+                  "description": "Communication channel"
+                },
+                "limit": {
+                  "type": "integer",
+                  "description": "Result limit"
+                },
+                "work_actual": {
+                  "type": "number",
+                  "description": "Actual work hours"
+                },
+                "gym_actual": {
+                  "type": "number",
+                  "description": "Actual gym hours"
+                },
+                "nutrition_actual": {
+                  "type": "number",
+                  "description": "Actual nutrition (calories)"
+                },
+                "agenda_id": {
+                  "type": "string",
+                  "description": "Agenda item ID"
+                },
+                "action": {
+                  "type": "string",
+                  "enum": ["create", "update", "delete"],
+                  "description": "Sync action"
+                }
+              }
+            },
+            "dryRun": {
+              "type": "boolean",
+              "description": "If true, validate without executing",
+              "default": false
+            }
+          },
+          "required": ["tool", "args"]
+        }
+      }
+    }
+  ],
+  "system_prompt_addition": "When you need to change the app, always use the agent_command tool. Prefer minimal valid arguments. Respect timezones. For agenda items, ensure end_ts > start_ts. Never include secrets. If a command returns RETRY error, back off and retry up to 3 times with exponential backoff."
+}

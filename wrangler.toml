@@ -1,0 +1,46 @@
+name = "agenda-dashboard"
+compatibility_date = "2024-01-01"
+account_id = "13bc78344aaf61b467e927deabdc3096"
+pages_build_output_dir = "dist"
+
+# D1 Database
+[[d1_databases]]
+binding = "DB"
+database_name = "agenda-dashboard"
+database_id = "6b67d1d6-bbec-4a13-922e-a6e8dd24c533"
+
+# KV Namespaces
+[[kv_namespaces]]
+binding = "TRAINER_KV"
+id = "ae4c22b7500545ce99f89cefd1b88644"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "ed2c6b469db64da5908ca397b1365406"
+
+# Environment variables (non-sensitive)
+[vars]
+VITE_PUBLIC_ORIGIN = "https://agenda-dashboard.pages.dev"
+
+# Routes (optional - if using custom domain)
+# [[routes]]
+# pattern = "agenda.yourdomain.com/*"
+# zone_name = "yourdomain.com"
+
+# Deployment configuration
+[build]
+command = "npm run build"
+
+# Development settings
+[dev]
+port = 8788
+local_protocol = "http"
+
+# Add your secrets via CLI (DO NOT put them in this file):
+# wrangler secret put N8N_BASE_URL
+# wrangler secret put N8N_TOKEN
+# wrangler secret put OPENAI_API_KEY
+# wrangler secret put ANTHROPIC_API_KEY
+# wrangler secret put SENDGRID_API_KEY
+# wrangler secret put TWILIO_ACCOUNT_SID
+# wrangler secret put TWILIO_AUTH_TOKEN

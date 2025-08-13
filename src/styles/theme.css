@@ -1,0 +1,63 @@
+:root {
+  /* Core colors in HSL for shadcn */
+  --background: 220 40% 3%;      /* Deep dark blue-black */
+  --foreground: 210 40% 98%;     /* Off-white */
+  
+  --card: 220 35% 6%;
+  --card-foreground: 210 40% 98%;
+  
+  --popover: 220 35% 6%;
+  --popover-foreground: 210 40% 98%;
+  
+  --primary: 263 90% 65%;        /* Violet */
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 220 30% 12%;
+  --secondary-foreground: 210 40% 98%;
+  
+  --muted: 217 30% 18%;
+  --muted-foreground: 215 20% 65%;
+  
+  --accent: 188 95% 55%;         /* Cyan */
+  --accent-foreground: 0 0% 100%;
+  
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  
+  --border: 217 30% 15%;
+  --input: 217 30% 15%;
+  --ring: 263 90% 65%;
+  
+  --radius: 1rem;
+  
+  /* Custom properties */
+  --glow-violet: 263 90% 65%;
+  --glow-cyan: 188 95% 55%;
+  --glow-intensity: 0.4;
+  
+  /* Typography scale */
+  --font-h1: 2rem;      /* 32px */
+  --font-h2: 1.5rem;    /* 24px */
+  --font-h3: 1.25rem;   /* 20px */
+  --font-body: 0.9375rem; /* 15px */
+  --font-small: 0.875rem; /* 14px */
+  --font-mono: 0.875rem;  /* 14px */
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+/* Light mode (optional) */
+@media (prefers-color-scheme: light) {
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 220 40% 3%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 40% 3%;
+    --primary: 263 70% 50%;
+    --accent: 188 80% 40%;
+    --border: 210 16% 90%;
+    --glow-intensity: 0.2;
+  }
+}
