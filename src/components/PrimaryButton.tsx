@@ -44,7 +44,7 @@ export const PrimaryButton = forwardRef<HTMLButtonElement, PrimaryButtonProps>(
         ref={ref}
         className={cn(
           'inline-flex items-center justify-center rounded-2xl font-medium',
-          'transition-all duration-[120ms] ease-out',
+          'transition-all duration-150 ease-out',
           'hover:scale-[1.01] active:scale-[0.98]',
           'focus:outline-none',
           glowOnFocus && variant === 'primary' && 'glow-primary',

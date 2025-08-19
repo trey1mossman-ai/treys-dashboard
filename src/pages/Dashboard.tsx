@@ -23,9 +23,9 @@ export function Dashboard() {
 
   // Calculate completion metrics
   const completionMetrics = useMemo(() => {
-    const workItems = items.filter(item => item.tag === 'work');
-    const gymItems = items.filter(item => item.tag === 'fitness');
-    const nutritionItems = items.filter(item => item.tag === 'nutrition');
+    const workItems = items.filter(item => item.tag === 'Deep' || item.tag === 'Meeting');
+    const gymItems = items.filter(item => item.tag === 'Gym' || item.tag === 'Move');
+    const nutritionItems = items.filter(item => item.tag === 'Break');
     
     const workCompleted = workItems.filter(item => item.completed).length;
     const gymCompleted = gymItems.filter(item => item.completed).length;

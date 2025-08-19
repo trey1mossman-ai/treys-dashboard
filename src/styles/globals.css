@@ -47,7 +47,7 @@
   
   /* Interactive states - aligned with design spec */
   .interactive {
-    @apply transition-all duration-[120ms] ease-out;
+    @apply transition-all duration-150 ease-out;
   }
   
   .interactive-hover:hover {
@@ -64,7 +64,7 @@
   
   /* Motion utilities per design spec */
   .motion-safe {
-    @apply transition-all duration-[120ms] ease-out;
+    @apply transition-all duration-150 ease-out;
   }
   
   .motion-hover:hover {

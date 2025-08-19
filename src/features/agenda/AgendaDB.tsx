@@ -72,7 +72,7 @@ export function AgendaDB() {
 
   return (
     <>
-      <GlowCard glow="strong" className="h-full flex flex-col">
+      <GlowCard glow="depth" elevation="medium" className="h-full flex flex-col">
         <div className="space-y-4 flex-1">
           {/* Date Navigation */}
           <div className="flex items-center justify-between">
