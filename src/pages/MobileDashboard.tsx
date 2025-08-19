@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { MobileHeader } from '@/components/MobileHeader';
 import { BottomNav } from '@/components/BottomNav';
+import { UniversalCapture } from '@/components/UniversalCapture';
+import { ThemeOfDay } from '@/components/ThemeOfDay';
+import { FocusMode, FocusModeToggle } from '@/components/FocusMode';
 import { AgendaSection } from '@/features/agenda/AgendaSection';
 import { TodoSection } from '@/features/todos/TodoSection';
 import { FoodSection } from '@/features/food/FoodSection';
@@ -39,6 +42,7 @@ const getSmartSupplementDefaults = (): SupplementItem[] => [
 
 export function MobileDashboard() {
   const [activeSection, setActiveSection] = useState('agenda');
+  const [focusMode, setFocusMode] = useState(false);
   // const [showSettings, setShowSettings] = useState(false); // TODO: implement settings modal
   const isOnline = useOnlineStatus();
   const { toast } = useToast();
@@ -301,9 +305,40 @@ export function MobileDashboard() {
     }
   };
 
+  // Find current and next agenda blocks
+  const now = new Date();
+  const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+  const currentBlock = data.agenda.find(item => 
+    item.startTime <= currentTime && item.endTime > currentTime
+  );
+  const currentBlockIndex = data.agenda.findIndex(item => item.id === currentBlock?.id);
+  const nextBlock = currentBlockIndex >= 0 && currentBlockIndex < data.agenda.length - 1
+    ? data.agenda[currentBlockIndex + 1]
+    : null;
+
   return (
     <div className="min-h-screen bg-background">
       <MobileHeader onSettingsClick={() => {/* TODO: implement settings modal */}} />
+      
+      {/* Theme of the day and Focus Mode toggle */}
+      <div className="container mx-auto px-4 py-2 flex items-center justify-between">
+        <ThemeOfDay />
+        {currentBlock && (
+          <FocusModeToggle 
+            isActive={focusMode} 
+            onToggle={() => setFocusMode(!focusMode)} 
+          />
+        )}
+      </div>
+      
+      {/* Focus Mode overlay */}
+      {focusMode && currentBlock && (
+        <FocusMode 
+          currentBlock={currentBlock}
+          nextBlock={nextBlock}
+          onClose={() => setFocusMode(false)}
+        />
+      )}
       
       <main className="container mx-auto px-4 py-6 space-y-8 pb-24">
         <AgendaSection
@@ -347,6 +382,14 @@ export function MobileDashboard() {
           isOnline={isOnline}
         />
       </main>
+      
+      {/* Universal Capture pill */}
+      <UniversalCapture
+        onAddAgenda={(item) => addAgendaItem({ ...item, completed: false })}
+        onAddTodo={(item) => addTodoItem({ ...item, completed: false })}
+        onAddFood={addFoodItem}
+        onAddSupplement={(item) => addSupplementItem({ ...item, taken: false })}
+      />
       
       <BottomNav 
         activeSection={activeSection} 
