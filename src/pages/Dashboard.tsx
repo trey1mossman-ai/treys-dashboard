@@ -3,9 +3,11 @@ import { MessageSquare, Mail, Phone, CheckCircle2, Activity, Brain } from 'lucid
 import { GlowCard } from '@/components/GlowCard';
 import { QuickActionsGrid } from '@/features/actions/QuickActionsGrid';
 import { NotesPanel } from '@/features/notes/NotesPanel';
+import { DraggableNotesPanel } from '@/features/notes/DraggableNotesPanel';
 import { Agenda } from '@/features/agenda/Agenda';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAgenda } from '@/features/agenda/useAgenda';
+import { Confetti } from '@/components/Confetti';
 import { cn } from '@/lib/utils';
 
 interface Communication {
@@ -20,6 +22,8 @@ interface Communication {
 export function Dashboard() {
   const [recentComms] = useState<Communication[]>([]);  // No placeholder data - start empty
   const { items } = useAgenda();
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [lastPercentage, setLastPercentage] = useState(0);
 
   // Calculate completion metrics
   const completionMetrics = useMemo(() => {
@@ -64,8 +68,28 @@ export function Dashboard() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Trigger confetti at milestone completions
+  useEffect(() => {
+    const thresholds = [50, 75, 100];
+    const currentPercentage = completionMetrics.percentage;
+    
+    if (currentPercentage > lastPercentage) {
+      for (const threshold of thresholds) {
+        if (currentPercentage >= threshold && lastPercentage < threshold) {
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 100);
+          break;
+        }
+      }
+    }
+    setLastPercentage(currentPercentage);
+  }, [completionMetrics.percentage]);
+
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <>
+      <Confetti trigger={showConfetti} />
+      <DraggableNotesPanel />
+      <div className="container mx-auto p-4 space-y-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
           Agenda Dashboard
@@ -103,8 +127,11 @@ export function Dashboard() {
             </div>
             <div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
               <div 
-                className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-500"
-                style={{ width: `${completionMetrics.percentage}%` }}
+                className={cn(
+                  "h-full bg-gradient-to-r from-primary to-accent transition-all duration-500",
+                  completionMetrics.percentage >= 100 && "animate-pulse-glow"
+                )}
+                style={{ width: `${Math.min(completionMetrics.percentage, 100)}%` }}
               />
             </div>
             <div className="text-sm font-mono text-muted-foreground">
@@ -168,6 +195,7 @@ export function Dashboard() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 

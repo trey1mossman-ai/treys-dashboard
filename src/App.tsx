@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Header } from '@/components/Header'
 import { InstallPWA } from '@/components/InstallPWA'
+import { AssistantDock } from '@/features/assistant/AssistantDock'
 import { useUIStore } from '@/state/useUIStore'
 import { exportToPDF } from '@/lib/export'
 import { WifiOff, Wifi, AlertCircle } from 'lucide-react'
@@ -102,6 +103,7 @@ function App() {
         <Outlet />
       </main>
       <InstallPWA />
+      <AssistantDock />
     </div>
   )
 }

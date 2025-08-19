@@ -1,4 +1,4 @@
-import { useState, memo } from 'react'
+import { useState, memo, useRef } from 'react'
 import { Check, Clock, Target, Mail, Timer } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatTimeRange } from '@/lib/time'
@@ -31,6 +31,19 @@ export const AgendaItem = memo(function AgendaItem({
 }: AgendaItemProps) {
   const [showActions, setShowActions] = useState(false)
   const [isCompleting, setIsCompleting] = useState(false)
+  const checkboxRef = useRef<HTMLButtonElement>(null)
+  
+  const createRipple = () => {
+    if (!checkboxRef.current) return
+    
+    const ripple = document.createElement('span')
+    ripple.className = 'ripple'
+    checkboxRef.current.appendChild(ripple)
+    
+    setTimeout(() => {
+      ripple.remove()
+    }, 600)
+  }
   
   return (
     <div 
@@ -49,9 +62,11 @@ export const AgendaItem = memo(function AgendaItem({
       onTouchEnd={() => setTimeout(() => setShowActions(false), 2000)}
     >
       <button
+        ref={checkboxRef}
         onClick={(e) => {
           e.stopPropagation()
           if (!item.completed) {
+            createRipple()
             setIsCompleting(true)
             setTimeout(() => {
               onToggle()
@@ -62,11 +77,10 @@ export const AgendaItem = memo(function AgendaItem({
           }
         }}
         className={cn(
-          "touchable w-5 h-5 rounded-md border-2 flex items-center justify-center interactive shrink-0",
+          "touchable w-5 h-5 rounded-md border-2 flex items-center justify-center interactive shrink-0 ripple-container",
           item.completed 
             ? "bg-primary border-primary" 
-            : "border-muted-foreground hover:border-primary",
-          isCompleting && "ripple-effect"
+            : "border-muted-foreground hover:border-primary"
         )}
         aria-label={item.completed ? "Mark as incomplete" : "Mark as complete"}
       >

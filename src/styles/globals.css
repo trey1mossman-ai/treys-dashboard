@@ -202,7 +202,7 @@
   @keyframes ripple {
     0% {
       transform: scale(0);
-      opacity: 0.8;
+      opacity: 0.4;
     }
     100% {
       transform: scale(4);
@@ -210,22 +210,23 @@
     }
   }
   
-  .ripple-effect {
+  .ripple-container {
     position: relative;
-    overflow: hidden;
+    overflow: visible;
   }
   
-  .ripple-effect::after {
-    content: '';
+  .ripple {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 100px;
-    height: 100px;
-    background: hsl(var(--glow-cyan) / 0.08);
+    width: 20px;
+    height: 20px;
+    background: hsl(var(--glow-cyan));
     border-radius: 50%;
     transform: translate(-50%, -50%) scale(0);
     animation: ripple 600ms ease-out;
+    pointer-events: none;
+    z-index: 10;
   }
   
   /* Strike-through animation for completed tasks */
@@ -250,6 +251,22 @@
     height: 2px;
     background: hsl(var(--muted-foreground));
     animation: strike 280ms ease-out forwards;
+  }
+  
+  /* Confetti animation */
+  @keyframes confetti-fall {
+    0% {
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 1;
+    }
+    50% {
+      transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(1.5);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(calc(-50% + var(--x) * 2), calc(-50% + 100px)) scale(0);
+      opacity: 0;
+    }
   }
   
   @keyframes slide-up {
