@@ -35,6 +35,12 @@
   --glow-cyan: 190 100% 50%;
   --glow-intensity: 0.3;        /* Reduced for glow discipline */
   
+  /* Section colors */
+  --color-agenda: 255 90% 70%;     /* Violet */
+  --color-todo: 38 92% 50%;        /* Amber */
+  --color-food: 142 71% 45%;       /* Emerald */
+  --color-supplements: 199 89% 48%; /* Sky */
+  
   /* Typography scale */
   --font-h1: 2rem;      /* 32px */
   --font-h2: 1.5rem;    /* 24px */
