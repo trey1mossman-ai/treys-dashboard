@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MobileHeader } from '@/components/MobileHeader';
 import { BottomNav } from '@/components/BottomNav';
 import { UniversalCapture } from '@/components/UniversalCapture';
 import { ThemeOfDay } from '@/components/ThemeOfDay';
 import { FocusMode, FocusModeToggle } from '@/components/FocusMode';
+import { AIGenerateModal, UndoToast } from '@/components/AIGenerateModal';
+import { SettingsModal } from '@/components/SettingsModal';
 import { AgendaSection } from '@/features/agenda/AgendaSection';
 import { TodoSection } from '@/features/todos/TodoSection';
 import { FoodSection } from '@/features/food/FoodSection';
@@ -43,9 +45,25 @@ const getSmartSupplementDefaults = (): SupplementItem[] => [
 export function MobileDashboard() {
   const [activeSection, setActiveSection] = useState('agenda');
   const [focusMode, setFocusMode] = useState(false);
-  // const [showSettings, setShowSettings] = useState(false); // TODO: implement settings modal
+  const [showSettings, setShowSettings] = useState(false);
   const isOnline = useOnlineStatus();
   const { toast } = useToast();
+  
+  // AI Generate Modal state
+  const [aiModalState, setAiModalState] = useState<{
+    isOpen: boolean;
+    section: string;
+    generatedItems: any[];
+  }>({ isOpen: false, section: '', generatedItems: [] });
+  
+  // Undo state
+  const [undoState, setUndoState] = useState<{
+    isVisible: boolean;
+    previousItems: any[];
+    section: string;
+  }>({ isVisible: false, previousItems: [], section: '' });
+  const [undoTimeLeft, setUndoTimeLeft] = useState(10);
+  const undoTimerRef = useRef<NodeJS.Timeout>();
   
   const {
     data,
@@ -98,16 +116,125 @@ export function MobileDashboard() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Undo timer effect
+  useEffect(() => {
+    if (undoState.isVisible && undoTimeLeft > 0) {
+      undoTimerRef.current = setTimeout(() => {
+        setUndoTimeLeft(prev => prev - 1);
+      }, 1000);
+    } else if (undoTimeLeft === 0) {
+      setUndoState({ isVisible: false, previousItems: [], section: '' });
+    }
+    
+    return () => {
+      if (undoTimerRef.current) {
+        clearTimeout(undoTimerRef.current);
+      }
+    };
+  }, [undoState.isVisible, undoTimeLeft]);
+
+  // Handle undo action
+  const handleUndo = () => {
+    if (!undoState.section || undoState.previousItems.length === 0) return;
+    
+    switch (undoState.section) {
+      case 'agenda':
+        setAgendaItems(undoState.previousItems as AgendaItem[]);
+        break;
+      case 'todos':
+        setTodoItems(undoState.previousItems as TodoItem[]);
+        break;
+      case 'food':
+        setFoodItems(undoState.previousItems as FoodItem[]);
+        break;
+      case 'supplements':
+        setSupplementItems(undoState.previousItems as SupplementItem[]);
+        break;
+    }
+    
+    setUndoState({ isVisible: false, previousItems: [], section: '' });
+    setUndoTimeLeft(10);
+    toast({ title: 'Changes undone' });
+  };
+
+  // Helper function to handle AI modal actions
+  const handleAIModalReplace = () => {
+    const { section, generatedItems } = aiModalState;
+    
+    // Store current items for undo
+    let previousItems: any[] = [];
+    
+    switch (section) {
+      case 'agenda':
+        previousItems = [...data.agenda];
+        setAgendaItems(generatedItems as AgendaItem[]);
+        break;
+      case 'todos':
+        previousItems = [...data.todos];
+        setTodoItems(generatedItems as TodoItem[]);
+        break;
+      case 'food':
+        previousItems = [...data.food];
+        setFoodItems(generatedItems as FoodItem[]);
+        break;
+      case 'supplements':
+        previousItems = [...data.supplements];
+        setSupplementItems(generatedItems as SupplementItem[]);
+        break;
+    }
+    
+    setAiModalState({ isOpen: false, section: '', generatedItems: [] });
+    setUndoState({ isVisible: true, previousItems, section });
+    setUndoTimeLeft(10);
+    toast({ title: 'AI items replaced' });
+  };
+
+  const handleAIModalMerge = () => {
+    const { section, generatedItems } = aiModalState;
+    
+    // Store current items for undo
+    let previousItems: any[] = [];
+    
+    switch (section) {
+      case 'agenda':
+        previousItems = [...data.agenda];
+        setAgendaItems([...data.agenda, ...generatedItems as AgendaItem[]]);
+        break;
+      case 'todos':
+        previousItems = [...data.todos];
+        setTodoItems([...data.todos, ...generatedItems as TodoItem[]]);
+        break;
+      case 'food':
+        previousItems = [...data.food];
+        setFoodItems([...data.food, ...generatedItems as FoodItem[]]);
+        break;
+      case 'supplements':
+        previousItems = [...data.supplements];
+        setSupplementItems([...data.supplements, ...generatedItems as SupplementItem[]]);
+        break;
+    }
+    
+    setAiModalState({ isOpen: false, section: '', generatedItems: [] });
+    setUndoState({ isVisible: true, previousItems, section });
+    setUndoTimeLeft(10);
+    toast({ title: 'AI items merged' });
+  };
+
+  const handleAIModalCancel = () => {
+    setAiModalState({ isOpen: false, section: '', generatedItems: [] });
+  };
+
   // AI generation handlers
   const generateAgenda = async () => {
     const webhookUrl = localStorage.getItem('webhook_url');
     
     if (!webhookUrl || !isOnline) {
-      // Use smart defaults
-      setAgendaItems(getSmartAgendaDefaults());
-      toast({
-        title: 'Smart defaults loaded',
-        description: isOnline ? 'Configure webhook in Settings for AI generation' : 'Offline - using smart defaults'
+      // Use smart defaults and show modal
+      const generatedItems = getSmartAgendaDefaults();
+      setAiModalState({
+        isOpen: true,
+        section: 'agenda',
+        generatedItems
       });
       return;
     }
@@ -137,16 +264,19 @@ export function MobileDashboard() {
           endTime: item.end || '10:00',
           completed: false
         }));
-        setAgendaItems(newItems);
-        toast({ title: 'AI agenda generated successfully' });
+        setAiModalState({
+          isOpen: true,
+          section: 'agenda',
+          generatedItems: newItems
+        });
       }
     } catch (error) {
       console.error('AI generation failed:', error);
-      setAgendaItems(getSmartAgendaDefaults());
-      toast({
-        title: 'AI unavailable',
-        description: 'Loaded smart defaults instead',
-        variant: 'destructive'
+      const generatedItems = getSmartAgendaDefaults();
+      setAiModalState({
+        isOpen: true,
+        section: 'agenda',
+        generatedItems
       });
     }
   };
@@ -155,10 +285,11 @@ export function MobileDashboard() {
     const webhookUrl = localStorage.getItem('webhook_url');
     
     if (!webhookUrl || !isOnline) {
-      setTodoItems(getSmartTodoDefaults());
-      toast({
-        title: 'Smart defaults loaded',
-        description: isOnline ? 'Configure webhook in Settings for AI generation' : 'Offline - using smart defaults'
+      const generatedItems = getSmartTodoDefaults();
+      setAiModalState({
+        isOpen: true,
+        section: 'todos',
+        generatedItems
       });
       return;
     }
@@ -188,16 +319,19 @@ export function MobileDashboard() {
           priority: priorityMap[item.priority as keyof typeof priorityMap] || 'medium',
           completed: false
         }));
-        setTodoItems(newItems);
-        toast({ title: 'AI todos generated successfully' });
+        setAiModalState({
+          isOpen: true,
+          section: 'todos',
+          generatedItems: newItems
+        });
       }
     } catch (error) {
       console.error('AI generation failed:', error);
-      setTodoItems(getSmartTodoDefaults());
-      toast({
-        title: 'AI unavailable',
-        description: 'Loaded smart defaults instead',
-        variant: 'destructive'
+      const generatedItems = getSmartTodoDefaults();
+      setAiModalState({
+        isOpen: true,
+        section: 'todos',
+        generatedItems
       });
     }
   };
@@ -206,10 +340,11 @@ export function MobileDashboard() {
     const webhookUrl = localStorage.getItem('webhook_url');
     
     if (!webhookUrl || !isOnline) {
-      setFoodItems(getSmartFoodDefaults());
-      toast({
-        title: 'Smart defaults loaded',
-        description: isOnline ? 'Configure webhook in Settings for AI generation' : 'Offline - using smart defaults'
+      const generatedItems = getSmartFoodDefaults();
+      setAiModalState({
+        isOpen: true,
+        section: 'food',
+        generatedItems
       });
       return;
     }
@@ -240,16 +375,19 @@ export function MobileDashboard() {
           carbs: item.carbs,
           fat: item.fat
         }));
-        setFoodItems(newItems);
-        toast({ title: 'AI meal plan generated successfully' });
+        setAiModalState({
+          isOpen: true,
+          section: 'food',
+          generatedItems: newItems
+        });
       }
     } catch (error) {
       console.error('AI generation failed:', error);
-      setFoodItems(getSmartFoodDefaults());
-      toast({
-        title: 'AI unavailable',
-        description: 'Loaded smart defaults instead',
-        variant: 'destructive'
+      const generatedItems = getSmartFoodDefaults();
+      setAiModalState({
+        isOpen: true,
+        section: 'food',
+        generatedItems
       });
     }
   };
@@ -258,10 +396,11 @@ export function MobileDashboard() {
     const webhookUrl = localStorage.getItem('webhook_url');
     
     if (!webhookUrl || !isOnline) {
-      setSupplementItems(getSmartSupplementDefaults());
-      toast({
-        title: 'Smart defaults loaded',
-        description: isOnline ? 'Configure webhook in Settings for AI generation' : 'Offline - using smart defaults'
+      const generatedItems = getSmartSupplementDefaults();
+      setAiModalState({
+        isOpen: true,
+        section: 'supplements',
+        generatedItems
       });
       return;
     }
@@ -291,16 +430,19 @@ export function MobileDashboard() {
           time: item.time || 'AM',
           taken: false
         }));
-        setSupplementItems(newItems);
-        toast({ title: 'AI supplement stack generated successfully' });
+        setAiModalState({
+          isOpen: true,
+          section: 'supplements',
+          generatedItems: newItems
+        });
       }
     } catch (error) {
       console.error('AI generation failed:', error);
-      setSupplementItems(getSmartSupplementDefaults());
-      toast({
-        title: 'AI unavailable',
-        description: 'Loaded smart defaults instead',
-        variant: 'destructive'
+      const generatedItems = getSmartSupplementDefaults();
+      setAiModalState({
+        isOpen: true,
+        section: 'supplements',
+        generatedItems
       });
     }
   };
@@ -318,7 +460,7 @@ export function MobileDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <MobileHeader onSettingsClick={() => {/* TODO: implement settings modal */}} />
+      <MobileHeader onSettingsClick={() => setShowSettings(true)} />
       
       {/* Theme of the day and Focus Mode toggle */}
       <div className="container mx-auto px-4 py-2 flex items-center justify-between">
@@ -396,7 +538,34 @@ export function MobileDashboard() {
         onSectionChange={setActiveSection} 
       />
       
-      {/* Settings modal would go here */}
+      {/* AI Generate Modal */}
+      <AIGenerateModal
+        isOpen={aiModalState.isOpen}
+        section={aiModalState.section}
+        currentItems={
+          aiModalState.section === 'agenda' ? data.agenda :
+          aiModalState.section === 'todos' ? data.todos :
+          aiModalState.section === 'food' ? data.food :
+          data.supplements
+        }
+        generatedItems={aiModalState.generatedItems}
+        onReplace={handleAIModalReplace}
+        onMerge={handleAIModalMerge}
+        onCancel={handleAIModalCancel}
+      />
+      
+      {/* Undo Toast */}
+      <UndoToast
+        isVisible={undoState.isVisible}
+        onUndo={handleUndo}
+        timeLeft={undoTimeLeft}
+      />
+      
+      {/* Settings Modal */}
+      <SettingsModal 
+        isOpen={showSettings} 
+        onClose={() => setShowSettings(false)} 
+      />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Plus, ChevronUp, ChevronDown, Trash2, Clock, Bot } from 'lucide-react';
+import { Plus, ChevronUp, ChevronDown, Trash2, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { AgendaItem } from '@/types/daily';
 
@@ -79,9 +79,11 @@ export function AgendaSection({
 
   return (
     <section id="agenda" className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-violet-500">Agenda</h2>
-        <div className="flex items-center gap-2">
+      {/* Section header with color stripe */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-xl font-bold text-violet-500">Agenda</h2>
+          <div className="flex items-center gap-2">
           {currentBlockIndex >= 0 && (
             <button
               onClick={jumpToNow}
@@ -90,21 +92,24 @@ export function AgendaSection({
               Jump to Now
             </button>
           )}
-          <button
-            onClick={handleAIGenerate}
-            disabled={!isOnline || isGenerating}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-all",
-              "bg-violet-500/10 text-violet-500",
-              isOnline && !isGenerating && "hover:bg-violet-500/20",
-              (!isOnline || isGenerating) && "opacity-50 cursor-not-allowed"
-            )}
-            title={!isOnline ? "Needs connection" : undefined}
-          >
-            <Bot className={cn("w-4 h-4", isGenerating && "animate-spin")} />
-            <span>AI: craft today</span>
-          </button>
+            <button
+              onClick={handleAIGenerate}
+              disabled={!isOnline || isGenerating}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-all",
+                "bg-violet-500 text-white",
+                isOnline && !isGenerating && "hover:bg-violet-600",
+                (!isOnline || isGenerating) && "opacity-50 cursor-not-allowed"
+              )}
+              title={!isOnline ? "Needs connection" : undefined}
+            >
+              <span>🤖</span>
+              <span>{isGenerating ? "Generating..." : "AI: craft today"}</span>
+            </button>
+          </div>
         </div>
+        {/* Color stripe */}
+        <div className="h-1 bg-gradient-to-r from-violet-500 to-violet-400 rounded-full" />
       </div>
 
       {/* Quick Add */}
@@ -153,7 +158,7 @@ export function AgendaSection({
               ref={index === currentBlockIndex ? currentBlockRef : null}
               className={cn(
                 "flex items-center gap-3 p-3 rounded-xl transition-all",
-                "border border-violet-500/20 hover:border-violet-500/40",
+                "bg-violet-500/5 border border-violet-500/20 hover:border-violet-500/40",
                 index === currentBlockIndex && "bg-violet-500/10 border-violet-500/50 shadow-lg shadow-violet-500/20",
                 item.completed && "opacity-60"
               )}

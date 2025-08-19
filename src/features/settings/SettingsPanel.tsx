@@ -5,6 +5,7 @@ import { Switch } from '@/components/ui/switch'
 import { Select, SelectItem } from '@/components/ui/select'
 import { useUIStore } from '@/state/useUIStore'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
+import { AISettings } from './AISettings'
 
 export function SettingsPanel() {
   const { theme, setTheme } = useUIStore()
@@ -74,6 +75,10 @@ export function SettingsPanel() {
   
   return (
     <div className="space-y-6">
+      {/* AI Configuration Section */}
+      <AISettings />
+      
+      {/* Existing Settings */}
       <Card className="p-6">
         <h3 className="font-semibold mb-4 flex items-center gap-2">
           <Sun className="w-5 h-5" />

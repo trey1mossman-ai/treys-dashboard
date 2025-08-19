@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Utensils, Bot, Copy } from 'lucide-react';
+import { Plus, Trash2, Utensils, Copy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { FoodItem } from '@/types/daily';
 
@@ -66,25 +66,30 @@ export function FoodSection({
 
   return (
     <section id="food" className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-emerald-500">Food</h2>
+      {/* Section header with color stripe */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-xl font-bold text-emerald-500">Food</h2>
         <div className="flex items-center gap-2">
           <button
             onClick={handleAIGenerate}
             disabled={!isOnline || isGenerating}
             className={cn(
               "flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-all",
-              "bg-emerald-500/10 text-emerald-500",
-              isOnline && !isGenerating && "hover:bg-emerald-500/20",
+              "bg-emerald-500 text-white",
+              isOnline && !isGenerating && "hover:bg-emerald-600",
               (!isOnline || isGenerating) && "opacity-50 cursor-not-allowed"
             )}
             title={!isOnline ? "Needs connection" : undefined}
           >
-            <Bot className={cn("w-4 h-4", isGenerating && "animate-spin")} />
-            <span>AI: craft today</span>
+            <span>🤖</span>
+            <span>{isGenerating ? "Generating..." : "AI: craft today"}</span>
           </button>
         </div>
       </div>
+      {/* Color stripe */}
+      <div className="h-1 bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full" />
+    </div>
 
       {/* Totals */}
       <div className="flex items-center justify-between p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
@@ -167,7 +172,7 @@ export function FoodSection({
           items.map((item) => (
             <div
               key={item.id}
-              className="flex items-center gap-3 p-3 rounded-xl border border-emerald-500/20 hover:border-emerald-500/40 transition-all"
+              className="flex items-center gap-3 p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20 hover:border-emerald-500/40 transition-all"
             >
               <div className="flex-1">
                 <input

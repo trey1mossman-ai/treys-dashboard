@@ -25,10 +25,14 @@ export function AssistantDock() {
   useEffect(() => {
     // Check if AI is configured
     const checkConfig = () => {
+      console.log('AssistantDock - checkConfig called')
       const configured = aiService.isConfigured()
+      console.log('AssistantDock - AI Service configured:', configured)
+      
       setIsConfigured(configured)
       
       if (configured && messages.length === 0) {
+        console.log('AssistantDock - Adding welcome message')
         // Add welcome message
         setMessages([{
           id: 'welcome',
@@ -45,7 +49,32 @@ export function AssistantDock() {
     
     checkConfig()
     agentBridge.initialize()
-  }, [])
+
+    // Listen for settings changes
+    const handleStorageChange = (e: StorageEvent) => {
+      console.log('AssistantDock - Storage changed:', e.key, e.newValue)
+      if (e.key === 'ai_config') {
+        checkConfig()
+      }
+    }
+    
+    // Listen for custom settings saved event
+    const handleSettingsSaved = () => {
+      console.log('AssistantDock - Settings saved event received, rechecking AI config')
+      // Add a small delay to ensure localStorage is updated
+      setTimeout(() => {
+        checkConfig()
+      }, 100)
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('ai-settings-saved', handleSettingsSaved)
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('ai-settings-saved', handleSettingsSaved)
+    }
+  }, [messages.length])
 
   const tools = [
     { 
@@ -137,10 +166,61 @@ export function AssistantDock() {
   }
 
   const handleToolClick = async (tool: typeof tools[0]) => {
+    if (!isConfigured || isProcessing) return
+    
+    console.log('Tool clicked:', tool.label, tool.command)
     setMessage(tool.command)
-    // Auto-send the command
-    setTimeout(() => {
-      handleSend()
+    
+    // Auto-send the command after a short delay
+    setTimeout(async () => {
+      if (!tool.command.trim() || isProcessing) return
+      
+      console.log('Auto-sending tool command:', tool.command)
+      
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        role: 'user',
+        content: tool.command.trim(),
+        timestamp: new Date(),
+        status: 'sent'
+      }
+      
+      setMessages(prev => [...prev, userMessage])
+      setMessage('')
+      setIsProcessing(true)
+      
+      try {
+        const response = await agentBridge.processNaturalCommand(userMessage.content)
+        
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: response.message,
+          timestamp: new Date(),
+          status: response.success ? 'sent' : 'error',
+          actions: response.results
+        }
+        
+        setMessages(prev => [...prev, assistantMessage])
+        
+        if (response.success && response.results) {
+          window.dispatchEvent(new CustomEvent('agenda-updated'))
+          window.dispatchEvent(new CustomEvent('tasks-updated'))
+          window.dispatchEvent(new CustomEvent('notes-updated'))
+        }
+        
+      } catch (error) {
+        console.error('Tool command error:', error)
+        setMessages(prev => [...prev, {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: 'I encountered an error processing your request. Please try again.',
+          timestamp: new Date(),
+          status: 'error'
+        }])
+      } finally {
+        setIsProcessing(false)
+      }
     }, 100)
   }
 
@@ -334,11 +414,12 @@ export function AssistantDock() {
               disabled={!isConfigured || isProcessing}
               className={cn(
                 "flex-1 px-3 py-2 rounded-lg",
-                "bg-muted/50 border border-border",
-                "focus:outline-none focus:ring-2 focus:ring-accent/50",
+                "bg-background border border-border",
+                "focus:outline-none focus:ring-2 focus:ring-primary/50",
                 "placeholder:text-muted-foreground",
-                "text-sm",
-                "disabled:opacity-50 disabled:cursor-not-allowed"
+                "text-sm text-foreground",
+                "disabled:opacity-50 disabled:cursor-not-allowed",
+                "min-h-[40px]"
               )}
             />
             <PrimaryButton

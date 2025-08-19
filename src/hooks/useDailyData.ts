@@ -1,72 +1,106 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { DayData, AgendaItem, TodoItem, FoodItem, SupplementItem } from '@/types/daily';
+import { dataSyncService } from '@/services/dataSync';
 
 const getTodayString = () => new Date().toISOString().slice(0, 10);
 
-const getStorageKey = (date: string) => `day:${date}`;
-
-const defaultDayData = (date: string): DayData => ({
-  date,
-  agenda: [],
-  todos: [],
-  food: [],
-  supplements: []
-});
-
 export function useDailyData(date?: string) {
   const targetDate = date || getTodayString();
-  const [data, setData] = useState<DayData>(() => {
-    const key = getStorageKey(targetDate);
-    const stored = localStorage.getItem(key);
-    if (stored) {
-      try {
-        return JSON.parse(stored);
-      } catch {
-        console.error('Failed to parse stored data');
-      }
-    }
-    return defaultDayData(targetDate);
+  const [data, setData] = useState<DayData>({
+    date: targetDate,
+    agenda: [],
+    todos: [],
+    food: [],
+    supplements: []
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [syncStatus, setSyncStatus] = useState(dataSyncService.getSyncStatus());
 
-  // Save to localStorage whenever data changes
+  // Load data on mount and when date changes
   useEffect(() => {
-    const key = getStorageKey(targetDate);
-    localStorage.setItem(key, JSON.stringify(data));
-  }, [data, targetDate]);
+    let isMounted = true;
+    
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        const loadedData = await dataSyncService.loadData(targetDate);
+        if (isMounted) {
+          setData(loadedData);
+        }
+      } catch (error) {
+        console.error('Failed to load data:', error);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadData();
+    return () => { isMounted = false; };
+  }, [targetDate]);
+
+  // Monitor sync status
+  useEffect(() => {
+    const updateSyncStatus = () => {
+      setSyncStatus(dataSyncService.getSyncStatus());
+    };
+
+    const interval = setInterval(updateSyncStatus, 1000);
+    window.addEventListener('online', updateSyncStatus);
+    window.addEventListener('offline', updateSyncStatus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('online', updateSyncStatus);
+      window.removeEventListener('offline', updateSyncStatus);
+    };
+  }, []);
+
+  // Save data helper
+  const saveData = useCallback(async (newData: DayData, changedField?: string) => {
+    setData(newData);
+    await dataSyncService.saveData(targetDate, newData, changedField);
+  }, [targetDate]);
 
   // Agenda operations
   const addAgendaItem = useCallback((item: Omit<AgendaItem, 'id'>) => {
-    setData(prev => ({
-      ...prev,
-      agenda: [...prev.agenda, { ...item, id: crypto.randomUUID() }]
+    const newData = {
+      ...data,
+      agenda: [...data.agenda, { ...item, id: crypto.randomUUID() }]
         .sort((a, b) => a.startTime.localeCompare(b.startTime))
-    }));
-  }, []);
+    };
+    saveData(newData, 'agenda');
+  }, [data, saveData]);
 
   const updateAgendaItem = useCallback((id: string, updates: Partial<AgendaItem>) => {
-    setData(prev => ({
-      ...prev,
-      agenda: prev.agenda.map(item =>
+    const newData = {
+      ...data,
+      agenda: data.agenda.map(item =>
         item.id === id ? { ...item, ...updates } : item
       ).sort((a, b) => a.startTime.localeCompare(b.startTime))
-    }));
-  }, []);
+    };
+    saveData(newData, 'agenda');
+  }, [data, saveData]);
 
-  const deleteAgendaItem = useCallback((id: string) => {
-    setData(prev => ({
-      ...prev,
-      agenda: prev.agenda.filter(item => item.id !== id)
-    }));
-  }, []);
+  const deleteAgendaItem = useCallback(async (id: string) => {
+    await dataSyncService.deleteItem(targetDate, 'agenda', id);
+    const newData = {
+      ...data,
+      agenda: data.agenda.filter(item => item.id !== id)
+    };
+    setData(newData);
+  }, [data, targetDate]);
 
   const toggleAgendaItem = useCallback((id: string) => {
-    setData(prev => ({
-      ...prev,
-      agenda: prev.agenda.map(item =>
+    const newData = {
+      ...data,
+      agenda: data.agenda.map(item =>
         item.id === id ? { ...item, completed: !item.completed } : item
       )
-    }));
-  }, []);
+    };
+    saveData(newData, 'agenda');
+  }, [data, saveData]);
 
   // Todo operations
   const addTodoItem = useCallback((item: Omit<TodoItem, 'id'>) => {
@@ -214,11 +248,22 @@ export function useDailyData(date?: string) {
   }, []);
 
   const clearAll = useCallback(() => {
-    setData(defaultDayData(targetDate));
-  }, [targetDate]);
+    const newData = {
+      date: targetDate,
+      agenda: [],
+      todos: [],
+      food: [],
+      supplements: []
+    };
+    saveData(newData);
+  }, [targetDate, saveData]);
 
   return {
     data,
+    isLoading,
+    syncStatus,
+    pendingSync: dataSyncService.getPendingCount(),
+    forceSync: dataSyncService.forcSync.bind(dataSyncService),
     // Agenda
     addAgendaItem,
     updateAgendaItem,

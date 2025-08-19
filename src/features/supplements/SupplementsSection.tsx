@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Pill, Bot } from 'lucide-react';
+import { Plus, Trash2, Pill, Clock, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { SupplementItem } from '@/types/daily';
 
@@ -15,11 +15,39 @@ interface SupplementsSectionProps {
 
 const timeOptions = ['AM', 'Pre', 'Post', 'PM'] as const;
 
-const timeColors = {
-  AM: 'text-blue-500 border-blue-500/30 bg-blue-500/10',
-  Pre: 'text-orange-500 border-orange-500/30 bg-orange-500/10',
-  Post: 'text-purple-500 border-purple-500/30 bg-purple-500/10',
-  PM: 'text-indigo-500 border-indigo-500/30 bg-indigo-500/10'
+const timeConfig = {
+  AM: {
+    label: 'Morning',
+    icon: '🌅',
+    color: 'sky',
+    bgClass: 'bg-sky-500/10',
+    borderClass: 'border-sky-500/30',
+    textClass: 'text-sky-500'
+  },
+  Pre: {
+    label: 'Pre-Workout',
+    icon: '💪',
+    color: 'orange',
+    bgClass: 'bg-orange-500/10',
+    borderClass: 'border-orange-500/30',
+    textClass: 'text-orange-500'
+  },
+  Post: {
+    label: 'Post-Workout',
+    icon: '🥤',
+    color: 'purple',
+    bgClass: 'bg-purple-500/10',
+    borderClass: 'border-purple-500/30',
+    textClass: 'text-purple-500'
+  },
+  PM: {
+    label: 'Evening',
+    icon: '🌙',
+    color: 'indigo',
+    bgClass: 'bg-indigo-500/10',
+    borderClass: 'border-indigo-500/30',
+    textClass: 'text-indigo-500'
+  }
 };
 
 export function SupplementsSection({ 
@@ -61,29 +89,34 @@ export function SupplementsSection({
 
   return (
     <section id="supplements" className="space-y-4 pb-20">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h2 className="text-xl font-bold text-sky-500">Supplements</h2>
+      {/* Section header with color stripe */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-bold text-sky-500">Supplements</h2>
           {items.length > 0 && (
             <span className="text-sm text-muted-foreground">
               {takenCount}/{items.length} taken
             </span>
           )}
         </div>
-        <button
-          onClick={handleAIGenerate}
-          disabled={!isOnline || isGenerating}
-          className={cn(
-            "flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-all",
-            "bg-sky-500/10 text-sky-500",
-            isOnline && !isGenerating && "hover:bg-sky-500/20",
-            (!isOnline || isGenerating) && "opacity-50 cursor-not-allowed"
-          )}
-          title={!isOnline ? "Needs connection" : undefined}
-        >
-          <Bot className={cn("w-4 h-4", isGenerating && "animate-spin")} />
-          <span>AI: craft today</span>
-        </button>
+          <button
+            onClick={handleAIGenerate}
+            disabled={!isOnline || isGenerating}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-all",
+              "bg-sky-500 text-white",
+              isOnline && !isGenerating && "hover:bg-sky-600",
+              (!isOnline || isGenerating) && "opacity-50 cursor-not-allowed"
+            )}
+            title={!isOnline ? "Needs connection" : undefined}
+          >
+            <span>🤖</span>
+            <span>{isGenerating ? "Generating..." : "AI: craft today"}</span>
+          </button>
+        </div>
+        {/* Color stripe */}
+        <div className="h-1 bg-gradient-to-r from-sky-500 to-sky-400 rounded-full" />
       </div>
 
       {/* Quick Add */}
@@ -121,8 +154,8 @@ export function SupplementsSection({
         </button>
       </div>
 
-      {/* Items */}
-      <div className="space-y-2">
+      {/* Items organized by time lanes */}
+      <div className="space-y-4">
         {items.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <Pill className="w-12 h-12 mx-auto mb-3 opacity-50" />
@@ -130,74 +163,104 @@ export function SupplementsSection({
             <p className="text-sm mt-1">Add your first supplement above</p>
           </div>
         ) : (
-          <div className="grid gap-2">
+          <div className="space-y-4">
             {timeOptions.map(timeSlot => {
               const timeItems = items.filter(item => item.time === timeSlot);
-              if (timeItems.length === 0) return null;
+              const config = timeConfig[timeSlot];
+              const takenInSlot = timeItems.filter(item => item.taken).length;
               
               return (
                 <div key={timeSlot} className="space-y-2">
-                  <div className={cn(
-                    "px-2 py-1 rounded-lg text-xs font-medium inline-block",
-                    timeColors[timeSlot]
-                  )}>
-                    {timeSlot}
-                  </div>
-                  {timeItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className={cn(
-                        "flex items-center gap-3 p-3 rounded-xl transition-all",
-                        "border border-sky-500/20 hover:border-sky-500/40",
-                        item.taken && "opacity-60"
+                  {/* Time lane header */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{config.icon}</span>
+                    <div className="flex items-center gap-2 flex-1">
+                      <h3 className={cn("font-semibold", config.textClass)}>
+                        {config.label}
+                      </h3>
+                      {timeItems.length > 0 && (
+                        <span className="text-xs text-muted-foreground">
+                          {takenInSlot}/{timeItems.length}
+                        </span>
                       )}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={item.taken}
-                        onChange={() => onToggle(item.id)}
-                        className="w-5 h-5 rounded border-2 border-sky-500 text-sky-500 focus:ring-sky-500/50"
-                      />
-                      
-                      <div className="flex-1">
-                        <input
-                          type="text"
-                          value={item.name}
-                          onChange={(e) => onUpdate(item.id, { name: e.target.value })}
-                          className={cn(
-                            "w-full bg-transparent font-medium focus:outline-none",
-                            item.taken && "line-through"
-                          )}
-                        />
-                        {item.dose && (
-                          <input
-                            type="text"
-                            value={item.dose}
-                            onChange={(e) => onUpdate(item.id, { dose: e.target.value })}
-                            className="text-sm text-muted-foreground bg-transparent focus:outline-none"
-                          />
-                        )}
-                      </div>
-
-                      <select
-                        value={item.time}
-                        onChange={(e) => onUpdate(item.id, { time: e.target.value as typeof item.time })}
-                        className="px-2 py-1 bg-transparent border border-border rounded text-sm focus:outline-none"
-                      >
-                        {timeOptions.map(time => (
-                          <option key={time} value={time}>{time}</option>
-                        ))}
-                      </select>
-
-                      <button
-                        onClick={() => onDelete(item.id)}
-                        className="p-1.5 rounded hover:bg-red-500/10 hover:text-red-500 transition-colors"
-                        aria-label="Delete"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {timeItems.length > 0 && takenInSlot === timeItems.length && (
+                        <CheckCircle2 className={cn("w-4 h-4", config.textClass)} />
+                      )}
                     </div>
-                  ))}
+                    <div className={cn(
+                      "h-px flex-1",
+                      config.bgClass
+                    )} />
+                  </div>
+                  
+                  {/* Items in this time lane */}
+                  {timeItems.length === 0 ? (
+                    <div className={cn(
+                      "p-3 rounded-xl text-center text-sm text-muted-foreground",
+                      config.bgClass,
+                      "border border-dashed",
+                      config.borderClass
+                    )}>
+                      No {config.label.toLowerCase()} supplements
+                    </div>
+                  ) : (
+                    <div className="grid gap-2 pl-7">
+                      {timeItems.map((item) => (
+                        <div
+                          key={item.id}
+                          className={cn(
+                            "flex items-center gap-3 p-3 rounded-xl transition-all",
+                            config.bgClass,
+                            "border",
+                            config.borderClass,
+                            "hover:shadow-lg",
+                            item.taken && "opacity-60"
+                          )}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={item.taken}
+                            onChange={() => onToggle(item.id)}
+                            className={cn(
+                              "w-5 h-5 rounded border-2",
+                              `border-${config.color}-500 text-${config.color}-500 focus:ring-${config.color}-500/50`
+                            )}
+                          />
+                          
+                          <div className="flex-1">
+                            <input
+                              type="text"
+                              value={item.name}
+                              onChange={(e) => onUpdate(item.id, { name: e.target.value })}
+                              className={cn(
+                                "w-full bg-transparent font-medium focus:outline-none",
+                                item.taken && "line-through"
+                              )}
+                            />
+                            {item.dose && (
+                              <input
+                                type="text"
+                                value={item.dose}
+                                onChange={(e) => onUpdate(item.id, { dose: e.target.value })}
+                                className="text-sm text-muted-foreground bg-transparent focus:outline-none"
+                                placeholder="Dose"
+                              />
+                            )}
+                          </div>
+
+                          <Clock className={cn("w-4 h-4", config.textClass)} />
+
+                          <button
+                            onClick={() => onDelete(item.id)}
+                            className="p-1.5 rounded hover:bg-red-500/10 hover:text-red-500 transition-colors"
+                            aria-label="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })}

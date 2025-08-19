@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, ChevronUp, ChevronDown, Trash2, CheckSquare, Bot } from 'lucide-react';
+import { Plus, ChevronUp, ChevronDown, Trash2, CheckSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { TodoItem } from '@/types/daily';
 
@@ -74,9 +74,11 @@ export function TodoSection({
 
   return (
     <section id="todos" className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h2 className="text-xl font-bold text-amber-500">To-Do</h2>
+      {/* Section header with color stripe */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-bold text-amber-500">To-Do</h2>
           {items.length > 0 && (
             <span className="text-sm text-muted-foreground">
               {completedCount}/{items.length} done
@@ -97,17 +99,20 @@ export function TodoSection({
             disabled={!isOnline || isGenerating}
             className={cn(
               "flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-all",
-              "bg-amber-500/10 text-amber-500",
-              isOnline && !isGenerating && "hover:bg-amber-500/20",
+              "bg-amber-500 text-white",
+              isOnline && !isGenerating && "hover:bg-amber-600",
               (!isOnline || isGenerating) && "opacity-50 cursor-not-allowed"
             )}
             title={!isOnline ? "Needs connection" : undefined}
           >
-            <Bot className={cn("w-4 h-4", isGenerating && "animate-spin")} />
-            <span>AI: craft today</span>
+            <span>🤖</span>
+            <span>{isGenerating ? "Generating..." : "AI: craft today"}</span>
           </button>
         </div>
       </div>
+      {/* Color stripe */}
+      <div className="h-1 bg-gradient-to-r from-amber-500 to-amber-400 rounded-full" />
+    </div>
 
       {/* Quick Add - Always visible */}
       <div className="flex gap-2 p-3 bg-amber-500/5 border border-amber-500/20 rounded-xl">
@@ -151,7 +156,7 @@ export function TodoSection({
               key={item.id}
               className={cn(
                 "flex items-center gap-3 p-3 rounded-xl transition-all",
-                "border border-amber-500/20 hover:border-amber-500/40",
+                "bg-amber-500/5 border border-amber-500/20 hover:border-amber-500/40",
                 item.completed && "opacity-60"
               )}
             >

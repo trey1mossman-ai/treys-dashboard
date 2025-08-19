@@ -45,14 +45,19 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       }
     }
     
+    // Determine overall health status
+    const isHealthy = dbStatus === 'connected' && tableCount > 0;
+    const missingTables = Object.entries(tableChecks).filter(([_, exists]) => !exists).map(([name]) => name);
+    
     const response = {
-      ok: true,
-      status: 'healthy',
+      ok: isHealthy,
+      status: isHealthy ? 'healthy' : 'degraded',
       timestamp: new Date().toISOString(),
       database: {
         status: dbStatus,
         tableCount,
-        tables: tableChecks
+        tables: tableChecks,
+        ...(missingTables.length > 0 && { missingTables })
       },
       environment: {
         runtime: 'cloudflare-pages',
@@ -60,7 +65,10 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       }
     };
     
-    return jsonResponse(response);
+    // Return 503 Service Unavailable if database is not properly set up
+    const statusCode = isHealthy ? 200 : 503;
+    
+    return jsonResponse(response, statusCode);
     
   } catch (error: any) {
     console.error('Health check error:', error);
