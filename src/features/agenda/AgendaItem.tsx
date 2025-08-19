@@ -8,6 +8,7 @@ import type { AgendaItem as AgendaItemType } from './types'
 interface AgendaItemProps {
   item: AgendaItemType
   isNow: boolean
+  isNext?: boolean
   onToggle: (e?: React.MouseEvent) => void
   onClick: (e?: React.MouseEvent) => void
   onStartFocus: (item: AgendaItemType) => void
@@ -19,7 +20,8 @@ interface AgendaItemProps {
 // Memoized AgendaItem component with custom comparison
 export const AgendaItem = memo(function AgendaItem({ 
   item, 
-  isNow, 
+  isNow,
+  isNext = false, 
   onToggle, 
   onClick,
   onStartFocus,
@@ -28,6 +30,7 @@ export const AgendaItem = memo(function AgendaItem({
   onFollowUp
 }: AgendaItemProps) {
   const [showActions, setShowActions] = useState(false)
+  const [isCompleting, setIsCompleting] = useState(false)
   
   return (
     <div 
@@ -36,6 +39,7 @@ export const AgendaItem = memo(function AgendaItem({
         "group relative flex items-center gap-3 p-4 rounded-xl transition-all",
         "hover:bg-muted/20 cursor-pointer scroll-container", // Added scroll-container for iOS
         isNow && "bg-primary/10 border border-primary/30 glow-violet",
+        isNext && !isNow && "bg-amber-500/10 border border-amber-500/30",
         item.completed && "opacity-60"
       )}
       onMouseEnter={() => setShowActions(true)}
@@ -47,13 +51,22 @@ export const AgendaItem = memo(function AgendaItem({
       <button
         onClick={(e) => {
           e.stopPropagation()
-          onToggle()
+          if (!item.completed) {
+            setIsCompleting(true)
+            setTimeout(() => {
+              onToggle()
+              setIsCompleting(false)
+            }, 280)
+          } else {
+            onToggle()
+          }
         }}
         className={cn(
           "touchable w-5 h-5 rounded-md border-2 flex items-center justify-center interactive shrink-0",
           item.completed 
             ? "bg-primary border-primary" 
-            : "border-muted-foreground hover:border-primary"
+            : "border-muted-foreground hover:border-primary",
+          isCompleting && "ripple-effect"
         )}
         aria-label={item.completed ? "Mark as incomplete" : "Mark as complete"}
       >
@@ -69,10 +82,14 @@ export const AgendaItem = memo(function AgendaItem({
           {isNow && (
             <span className="text-xs text-primary animate-pulse-glow">Now</span>
           )}
+          {isNext && !isNow && (
+            <span className="text-xs text-amber-500 font-medium">Next</span>
+          )}
         </div>
         <p className={cn(
           "mt-1 font-medium text-foreground selectable", // Added selectable for iOS
-          item.completed && "line-through"
+          item.completed && "line-through",
+          isCompleting && "strike-through"
         )}>
           {item.title}
         </p>

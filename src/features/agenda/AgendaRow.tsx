@@ -7,6 +7,7 @@ import type { AgendaItem as AgendaItemType } from './types'
 interface AgendaRowProps {
   item: AgendaItemType
   isNow: boolean
+  isNext?: boolean
   onToggle: () => void
   onClick: () => void
   onStartFocus: (item: AgendaItemType) => void
@@ -92,7 +93,8 @@ const ActionButton = memo(function ActionButton({
 
 export const AgendaRow = memo(function AgendaRow({ 
   item, 
-  isNow, 
+  isNow,
+  isNext = false, 
   onToggle, 
   onClick,
   onStartFocus,
@@ -135,6 +137,7 @@ export const AgendaRow = memo(function AgendaRow({
         'border border-border/70 bg-card/50',
         'hover:bg-card/70',
         isNow && 'glow-live-violet bg-primary/5 border-primary/30',
+        isNext && !isNow && 'border-amber-500/30 bg-amber-500/5',
         item.completed && 'opacity-60',
         isCompleting && 'scale-[0.98]'
       )}
@@ -187,6 +190,14 @@ export const AgendaRow = memo(function AgendaRow({
               <span className="text-xs text-primary font-medium animate-pulse-glow flex items-center gap-1">
                 <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
                 Now
+              </span>
+            )}
+            
+            {/* Next indicator */}
+            {isNext && !isNow && (
+              <span className="text-xs text-amber-500 font-medium flex items-center gap-1">
+                <div className="w-2 h-2 bg-amber-500 rounded-full" />
+                Next
               </span>
             )}
           </div>

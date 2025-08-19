@@ -1,12 +1,16 @@
-export function formatTime(date: Date): string {
-  return date.toLocaleTimeString('en-US', {
+export function formatTime(date: Date | string): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date
+  if (isNaN(dateObj.getTime())) {
+    return 'Invalid time'
+  }
+  return dateObj.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true
   })
 }
 
-export function formatTimeRange(start: Date, end: Date): string {
+export function formatTimeRange(start: Date | string, end: Date | string): string {
   return `${formatTime(start)} - ${formatTime(end)}`
 }
 

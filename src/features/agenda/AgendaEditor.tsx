@@ -39,12 +39,16 @@ export function AgendaEditor({
   })
   
   useEffect(() => {
+    if (!isOpen) return // Don't update if dialog is closed
+    
     if (item) {
+      const tagValue = item.tag || 'None'
+      console.log('Setting tag for existing item:', tagValue)
       setFormData({
         title: item.title,
         startTime: formatDateTimeLocal(item.startTime),
         endTime: formatDateTimeLocal(item.endTime),
-        tag: item.tag || '',
+        tag: tagValue,
         notes: item.notes || ''
       })
     } else {
@@ -57,15 +61,16 @@ export function AgendaEditor({
       const endTime = new Date(startTime)
       endTime.setHours(startTime.getHours() + 1) // Default 1 hour duration
       
+      console.log('Setting default tag for new item: None')
       setFormData({
         title: '',
         startTime: formatDateTimeLocal(startTime),
         endTime: formatDateTimeLocal(endTime),
-        tag: '',
+        tag: 'None',
         notes: ''
       })
     }
-  }, [item])
+  }, [item, isOpen])
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -90,11 +95,14 @@ export function AgendaEditor({
       return
     }
     
+    const tagToSave = formData.tag === 'None' ? undefined : formData.tag as 'Deep' | 'Move' | 'Gym' | 'Break' | 'Meeting' | 'Personal' | undefined
+    console.log('Submitting with tag:', formData.tag, '-> saving as:', tagToSave)
+    
     const data = {
       title: formData.title.trim(),
       startTime: startDate,
       endTime: endDate,
-      tag: formData.tag as 'Deep' | 'Move' | 'Gym' | 'Break' | 'Meeting' | 'Personal' | undefined,
+      tag: tagToSave,
       notes: formData.notes || undefined,
       completed: item?.completed || false
     }
@@ -165,13 +173,16 @@ export function AgendaEditor({
             <Label htmlFor="tag" className="text-sm font-medium">Tag</Label>
             <Select 
               value={formData.tag}
-              onValueChange={(value) => setFormData({ ...formData, tag: value })}
+              onValueChange={(value) => {
+                console.log('Tag selected:', value)
+                setFormData({ ...formData, tag: value })
+              }}
             >
               <SelectTrigger id="tag">
                 <SelectValue placeholder="Select a tag" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="None">None</SelectItem>
                 <SelectItem value="Deep">Deep Work</SelectItem>
                 <SelectItem value="Move">Movement</SelectItem>
                 <SelectItem value="Gym">Gym</SelectItem>
@@ -214,12 +225,24 @@ export function AgendaEditor({
   )
 }
 
-function formatDateTimeLocal(date: Date): string {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
+function formatDateTimeLocal(date: Date | string): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date
+  if (isNaN(dateObj.getTime())) {
+    // Return current time if invalid
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    const hours = String(now.getHours()).padStart(2, '0')
+    const minutes = String(now.getMinutes()).padStart(2, '0')
+    return `${year}-${month}-${day}T${hours}:${minutes}`
+  }
+  
+  const year = dateObj.getFullYear()
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0')
+  const day = String(dateObj.getDate()).padStart(2, '0')
+  const hours = String(dateObj.getHours()).padStart(2, '0')
+  const minutes = String(dateObj.getMinutes()).padStart(2, '0')
   
   return `${year}-${month}-${day}T${hours}:${minutes}`
 }

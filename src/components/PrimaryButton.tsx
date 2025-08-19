@@ -44,13 +44,15 @@ export const PrimaryButton = forwardRef<HTMLButtonElement, PrimaryButtonProps>(
         ref={ref}
         className={cn(
           'inline-flex items-center justify-center rounded-2xl font-medium',
-          'transition-[transform,box-shadow,background] duration-150',
-          'hover:scale-[1.01] active:scale-[.995]',
+          'transition-all duration-[120ms] ease-out',
+          'hover:scale-[1.01] active:scale-[0.98]',
           'focus:outline-none',
+          glowOnFocus && variant === 'primary' && 'glow-primary',
+          glowOnFocus && variant === 'accent' && 'glow-success',
           glowOnFocus && 'focus-visible:ring-2 focus-visible:ring-accent/70 focus-visible:ring-offset-0',
           sizeClasses[size],
           variantClasses[variant],
-          disabled && 'opacity-50 cursor-not-allowed hover:scale-100',
+          disabled && 'opacity-50 cursor-not-allowed hover:scale-100 active:scale-100',
           className
         )}
         disabled={disabled}

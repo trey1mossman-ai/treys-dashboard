@@ -19,8 +19,15 @@ export function useAgenda() {
     const defaultSchedule = buildTodaySchedule()
     const dateString = getTodayDateString()
     
+    // Convert string dates back to Date objects
+    const parsedSavedItems = savedItems.map(item => ({
+      ...item,
+      startTime: typeof item.startTime === 'string' ? new Date(item.startTime) : item.startTime,
+      endTime: typeof item.endTime === 'string' ? new Date(item.endTime) : item.endTime
+    }))
+    
     // Merge and add completion status in one pass
-    const mergedItems = mergeScheduleWithSaved(defaultSchedule, savedItems).map(item => {
+    const mergedItems = mergeScheduleWithSaved(defaultSchedule, parsedSavedItems).map(item => {
       const key = `${STORAGE_KEYS.AGENDA_DONE}_${item.id}_${dateString}`
       const completed = localStorage.getItem(key) === 'true'
       return { ...item, completed }

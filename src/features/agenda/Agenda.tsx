@@ -127,16 +127,22 @@ export function Agenda() {
           
           <Card className="max-h-[600px] overflow-y-auto">
             <div className="space-y-2">
-              {items.map((item) => (
-                <AgendaItem
-                  key={item.id}
-                  item={item}
-                  isNow={isTimeInRange(now, item.startTime, item.endTime)}
-                  onToggle={(e?: React.MouseEvent) => {
-                    e?.stopPropagation()
-                    toggleItemComplete(item.id)
-                  }}
-                  onClick={(e?: React.MouseEvent) => {
+              {items.map((item, index) => {
+                const isCurrentTask = isTimeInRange(now, item.startTime, item.endTime)
+                const isNextTask = !isCurrentTask && 
+                  index === items.findIndex(i => !i.completed && i.startTime > now)
+                
+                return (
+                  <AgendaItem
+                    key={item.id}
+                    item={item}
+                    isNow={isCurrentTask}
+                    isNext={isNextTask}
+                    onToggle={(e?: React.MouseEvent) => {
+                      e?.stopPropagation()
+                      toggleItemComplete(item.id)
+                    }}
+                    onClick={(e?: React.MouseEvent) => {
                     e?.stopPropagation()
                     openEditor(item)
                   }}
@@ -163,9 +169,10 @@ export function Agenda() {
                       title: 'Follow-up Created', 
                       description: 'Scheduled for tomorrow at 9:00 AM' 
                     })
-                  }}
-                />
-              ))}
+                    }}
+                  />
+                )
+              })}
             </div>
           </Card>
         </div>

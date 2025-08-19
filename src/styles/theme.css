@@ -1,15 +1,15 @@
 :root {
-  /* Core colors in HSL for shadcn */
-  --background: 220 40% 3%;      /* Deep dark blue-black */
+  /* Core colors in HSL - Aligned with design spec */
+  --background: 225 20% 6%;      /* Deep dark blue-black per spec */
   --foreground: 210 40% 98%;     /* Off-white */
   
-  --card: 220 35% 6%;
+  --card: 225 18% 9%;
   --card-foreground: 210 40% 98%;
   
-  --popover: 220 35% 6%;
+  --popover: 225 18% 9%;
   --popover-foreground: 210 40% 98%;
   
-  --primary: 263 90% 65%;        /* Violet */
+  --primary: 255 90% 70%;        /* Violet per spec */
   --primary-foreground: 0 0% 100%;
   
   --secondary: 220 30% 12%;
@@ -18,7 +18,7 @@
   --muted: 217 30% 18%;
   --muted-foreground: 215 20% 65%;
   
-  --accent: 188 95% 55%;         /* Cyan */
+  --accent: 190 100% 50%;        /* Cyan per spec */
   --accent-foreground: 0 0% 100%;
   
   --destructive: 0 84% 60%;
@@ -26,14 +26,14 @@
   
   --border: 217 30% 15%;
   --input: 217 30% 15%;
-  --ring: 263 90% 65%;
+  --ring: 255 90% 70%;
   
   --radius: 1rem;
   
-  /* Custom properties */
-  --glow-violet: 263 90% 65%;
-  --glow-cyan: 188 95% 55%;
-  --glow-intensity: 0.4;
+  /* Custom properties - Updated per spec */
+  --glow-violet: 255 90% 70%;
+  --glow-cyan: 190 100% 50%;
+  --glow-intensity: 0.3;        /* Reduced for glow discipline */
   
   /* Typography scale */
   --font-h1: 2rem;      /* 32px */
