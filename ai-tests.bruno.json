@@ -1,0 +1,181 @@
+{
+  "name": "AI Integration Tests",
+  "version": "1",
+  "description": "Test collection for debugging AI integration",
+  "variables": {
+    "base_url": "https://b80746fc.agenda-dashboard.pages.dev"
+  },
+  "requests": [
+    {
+      "name": "1. Health Check",
+      "method": "GET",
+      "url": "{{base_url}}/api/ai/health",
+      "description": "Check if AI services are configured and accessible"
+    },
+    {
+      "name": "2. Basic OpenAI (No Tools, No Stream)",
+      "method": "POST",
+      "url": "{{base_url}}/api/ai/respond",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "provider": "openai",
+        "stream": false,
+        "enable_tools": false,
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a terse assistant."
+          },
+          {
+            "role": "user",
+            "content": "Return the word PINEAPPLE exactly."
+          }
+        ]
+      },
+      "description": "Simplest test - should return PINEAPPLE"
+    },
+    {
+      "name": "3. Streaming Test",
+      "method": "POST",
+      "url": "{{base_url}}/api/ai/respond",
+      "headers": {
+        "Content-Type": "application/json",
+        "Accept": "text/event-stream"
+      },
+      "body": {
+        "provider": "openai",
+        "stream": true,
+        "enable_tools": false,
+        "messages": [
+          {
+            "role": "user",
+            "content": "Count from 1 to 5 slowly."
+          }
+        ]
+      },
+      "description": "Test SSE streaming - watch for data: events"
+    },
+    {
+      "name": "4. Tool Execution Test",
+      "method": "POST",
+      "url": "{{base_url}}/api/ai/respond",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "provider": "openai",
+        "stream": false,
+        "enable_tools": true,
+        "messages": [
+          {
+            "role": "user",
+            "content": "What time is it? (use a tool if available)"
+          }
+        ]
+      },
+      "description": "Test tool calling - most common hang cause"
+    },
+    {
+      "name": "5. Direct Tool Test",
+      "method": "POST",
+      "url": "{{base_url}}/api/ai/tools/router",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "tool": "create_task",
+        "args": {
+          "title": "Test Task from Bruno"
+        },
+        "userId": "test-user"
+      },
+      "description": "Test Action Router directly"
+    },
+    {
+      "name": "6. RAG Search Test",
+      "method": "POST",
+      "url": "{{base_url}}/api/rag/search",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "query": "test query",
+        "top_k": 3
+      },
+      "description": "Test knowledge base search"
+    },
+    {
+      "name": "7. Anthropic Test",
+      "method": "POST",
+      "url": "{{base_url}}/api/ai/respond",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "provider": "anthropic",
+        "stream": false,
+        "enable_tools": false,
+        "messages": [
+          {
+            "role": "user",
+            "content": "Say HELLO exactly."
+          }
+        ]
+      },
+      "description": "Test Anthropic provider (if configured)"
+    },
+    {
+      "name": "8. CORS Preflight",
+      "method": "OPTIONS",
+      "url": "{{base_url}}/api/ai/respond",
+      "headers": {
+        "Origin": "http://localhost:5173",
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "Content-Type"
+      },
+      "description": "Test CORS configuration"
+    },
+    {
+      "name": "9. Complex Tool Chain",
+      "method": "POST",
+      "url": "{{base_url}}/api/ai/respond",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "provider": "openai",
+        "stream": false,
+        "enable_tools": true,
+        "messages": [
+          {
+            "role": "user",
+            "content": "Create a task called 'Review code' and then search for any existing code review tasks."
+          }
+        ]
+      },
+      "description": "Test multiple tool calls in sequence"
+    },
+    {
+      "name": "10. Timeout Test",
+      "method": "POST",
+      "url": "{{base_url}}/api/ai/respond",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "provider": "openai",
+        "stream": false,
+        "enable_tools": false,
+        "messages": [
+          {
+            "role": "user",
+            "content": "Write a haiku about clouds."
+          }
+        ]
+      },
+      "description": "Should complete within 10 seconds"
+    }
+  ]
+}
