@@ -1,6 +1,6 @@
 import { patternDetector } from '../intelligence/pattern-detector';
 import { localBrain } from '../database/local-brain';
-import { openAIClient } from '../ai/openai-client';
+import { aiService } from '../ai/ai-service';
 import { costController } from '../ai/cost-controller';
 
 interface AutomationRule {
@@ -363,16 +363,15 @@ class AutoPilot {
         2. ${conflict.event2.data.title} at ${conflict.event2.data.startTime}
         Suggest the best resolution (reschedule, cancel, or merge).`;
       
-      const response = await openAIClient.chat(prompt, { 
-        forceModel: 'gpt-3.5-turbo',
-        temperature: 0.3
+      const response = await aiService.send(prompt, { 
+        stream: false
       });
       
       // Parse AI response and return resolution
       return {
         type: 'reschedule',
         target: conflict.event2,
-        proposal: response.content,
+        proposal: response,
         requiresConfirmation: true
       };
     }

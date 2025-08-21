@@ -3,7 +3,7 @@ import { MessageSquare, X, Zap, Calendar, CheckSquare, Mail, Brain, Loader2, Ale
 import { cn } from '@/lib/utils'
 import { PrimaryButton } from '@/components/PrimaryButton'
 import { agentBridge } from '@/services/agentBridge'
-import { openAIClient } from '@/lib/ai/openai-client'
+import { aiService } from '@/lib/ai/ai-service'
 
 interface Message {
   id: string
@@ -21,13 +21,12 @@ export function AssistantDock() {
   const [messages, setMessages] = useState<Message[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const [isConfigured, setIsConfigured] = useState(false)
-  const [chatId] = useState(() => `chat-${Date.now()}`)
 
   useEffect(() => {
     // Check if AI is configured
     const checkConfig = () => {
       console.log('AssistantDock - checkConfig called')
-      const configured = openAIClient.isConfigured()
+      const configured = true // AI service uses backend proxy, always configured
       console.log('AssistantDock - AI Service configured:', configured)
       
       setIsConfigured(configured)
@@ -130,33 +129,25 @@ export function AssistantDock() {
     setIsProcessing(true)
     
     try {
-      // Process with new OpenAI client
-      const response = await openAIClient.chat(userMessage.content, {
-        session: chatId,
+      // Process with AI service (uses backend proxy)
+      const response = await aiService.send(userMessage.content, {
         stream: false
       })
-      
-      if (response.tools) {
-        console.log('Tools executed:', response.tools)
-      }
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: response.content,
+        content: response,
         timestamp: new Date(),
-        status: response.error ? 'error' : 'sent'
+        status: 'sent'
       }
       
       setMessages(prev => [...prev, assistantMessage])
       
-      // If successful, trigger UI updates
-      if (!response.error) {
-        // Dispatch events to update the UI
-        window.dispatchEvent(new CustomEvent('agenda-updated'))
-        window.dispatchEvent(new CustomEvent('tasks-updated'))
-        window.dispatchEvent(new CustomEvent('notes-updated'))
-      }
+      // Dispatch events to update the UI
+      window.dispatchEvent(new CustomEvent('agenda-updated'))
+      window.dispatchEvent(new CustomEvent('tasks-updated'))
+      window.dispatchEvent(new CustomEvent('notes-updated'))
       
     } catch (error) {
       console.error('Assistant error:', error)
@@ -197,27 +188,22 @@ export function AssistantDock() {
       setIsProcessing(true)
       
       try {
-        const response = await openAIClient.chat(userMessage.content, {
-          session: chatId,
+        const response = await aiService.send(userMessage.content, {
           stream: false
         })
-        
-        if (response.tools) {
-          console.log('Tools executed:', response.tools)
-        }
         
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: response.content,
+          content: response,
           timestamp: new Date(),
-          status: response.error ? 'error' : 'sent',
-          actions: response.results
+          status: 'sent'
         }
         
         setMessages(prev => [...prev, assistantMessage])
         
-        if (response.success && response.results) {
+        // Always trigger UI updates
+        if (true) {
           window.dispatchEvent(new CustomEvent('agenda-updated'))
           window.dispatchEvent(new CustomEvent('tasks-updated'))
           window.dispatchEvent(new CustomEvent('notes-updated'))

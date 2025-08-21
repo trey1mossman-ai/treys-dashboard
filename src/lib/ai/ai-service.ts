@@ -51,8 +51,13 @@ export class AIService {
   private abortController?: AbortController;
 
   constructor(config: Partial<AIConfig> = {}) {
+    // Use current origin for production, localhost for dev
+    const defaultApiUrl = typeof window !== 'undefined' 
+      ? window.location.origin 
+      : 'http://localhost:8787';
+    
     this.config = {
-      apiUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8787',
+      apiUrl: import.meta.env.VITE_API_BASE_URL || defaultApiUrl,
       provider: 'openai',
       enableTools: true,
       stream: true,
