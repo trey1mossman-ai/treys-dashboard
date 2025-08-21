@@ -17,6 +17,8 @@ import { performanceMonitor } from '@/lib/monitoring/performance-monitor'
 import { useAIEventListeners } from '@/hooks/useAIEventListeners'
 import { CostMonitor } from '@/components/CostMonitor'
 import { AutoPilotNotifications } from '@/components/AutoPilotNotifications'
+import './styles/aesthetic-enhancements.css'
+
 function App() {
   const { setTheme } = useUIStore()
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
@@ -25,11 +27,15 @@ function App() {
   
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as 'dark' | 'light' | null
-    if (savedTheme) {
-      setTheme(savedTheme)
-    } else {
-      setTheme('dark')
-    }
+    const initialTheme = savedTheme || 'dark'
+    setTheme(initialTheme)
+    
+    // Apply theme to document
+    document.documentElement.classList.toggle('dark', initialTheme === 'dark')
+    document.documentElement.setAttribute('data-theme', initialTheme)
+    
+    // Set color scheme for native elements
+    document.documentElement.style.colorScheme = initialTheme
   }, [setTheme])
   
   // Initialize Life OS components
@@ -73,7 +79,7 @@ function App() {
   }
   
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground aurora-bg" style={{ backgroundBlendMode: 'overlay' }}>
       <Header onJumpToNow={handleJumpToNow} onExport={handleExport} />
       <main className="relative">
         <Outlet />

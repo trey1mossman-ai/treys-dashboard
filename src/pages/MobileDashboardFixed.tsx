@@ -8,8 +8,9 @@ import { SettingsModal } from '@/components/SettingsModal';
 import { AIGenerateModal, UndoToast } from '@/components/AIGenerateModal';
 import type { AgendaItem, TodoItem, FoodItem, SupplementItem } from '@/types/daily';
 
-// Import design tokens
+// Import design tokens and aesthetic enhancements
 import '../styles/design-tokens.css';
+import '../styles/aesthetic-enhancements.css';
 
 // Smart defaults for offline mode
 const getSmartAgendaDefaults = (): AgendaItem[] => [
@@ -381,15 +382,14 @@ export function MobileDashboardFixed() {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)' }}>
+    <div className="min-h-screen cyberpunk-grid" style={{ backgroundColor: 'var(--color-bg)' }}>
       {/* Sticky Header */}
-      <header className="sticky top-0 z-50" style={{ 
+      <header className="sticky top-0 z-50 glass-morphism-enhanced" style={{ 
         height: 'var(--header-height)',
-        backgroundColor: 'var(--color-surface)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
       }}>
         <div className="flex items-center justify-between px-4 h-full">
-          <span className="text-h2" style={{ color: 'var(--color-text-primary)' }}>
+          <span className="text-h2 wave-logo" style={{ fontWeight: 900 }}>
             Agenda
           </span>
           <span className="text-meta" style={{ color: 'var(--color-text-secondary)' }}>
@@ -435,7 +435,7 @@ export function MobileDashboardFixed() {
       {/* Main Content */}
       <main className="px-4 pb-32 space-y-6">
         {/* Agenda Section */}
-        <section className="card-stack section-violet">
+        <section className="card-stack section-violet neon-card">
           <div className="card-header">
             <h2 className="text-h2" style={{ color: 'var(--color-violet-600)' }}>
               Agenda
@@ -455,10 +455,8 @@ export function MobileDashboardFixed() {
               )}
               <button 
                 onClick={generateAgenda}
-                className="pill interactive"
+                className="pill iridescent-button"
                 style={{ 
-                  background: 'var(--color-violet-600)', 
-                  color: 'white',
                   opacity: isOnline ? 1 : 0.5
                 }}
                 disabled={!isOnline}
@@ -515,8 +513,7 @@ export function MobileDashboardFixed() {
                     setAgendaQuickAdd({ title: '', start: '09:00', end: '10:00' });
                   }
                 }}
-                className="interactive p-2 rounded-lg"
-                style={{ background: 'var(--color-violet-600)', color: 'white' }}
+                className="shiny-button p-2 rounded-lg"
               >
                 <Plus className="w-5 h-5" />
               </button>
@@ -589,7 +586,7 @@ export function MobileDashboardFixed() {
         </section>
 
         {/* To-Do Section */}
-        <section className="card-stack section-amber">
+        <section className="card-stack section-amber neon-card">
           <div className="card-header">
             <h2 className="text-h2" style={{ color: 'var(--color-amber-500)' }}>
               To-Do
@@ -643,8 +640,8 @@ export function MobileDashboardFixed() {
                     setTodoQuickAdd({ text: '', priority: 'medium' });
                   }
                 }}
-                className="interactive p-2 rounded-lg"
-                style={{ background: 'var(--color-amber-500)', color: 'var(--color-bg)' }}
+                className="shiny-button p-2 rounded-lg"
+                style={{ background: 'linear-gradient(135deg, var(--color-amber-500), var(--color-amber-600))' }}
               >
                 <Plus className="w-5 h-5" />
               </button>
@@ -697,7 +694,7 @@ export function MobileDashboardFixed() {
         </section>
 
         {/* Food Section */}
-        <section className="card-stack section-emerald">
+        <section className="card-stack section-emerald neon-card">
           <div className="card-header">
             <h2 className="text-h2" style={{ color: 'var(--color-emerald-500)' }}>
               Food
@@ -762,8 +759,8 @@ export function MobileDashboardFixed() {
                     setFoodQuickAdd({ name: '', calories: '', protein: '', carbs: '', fat: '' });
                   }
                 }}
-                className="interactive p-2 rounded-lg"
-                style={{ background: 'var(--color-emerald-500)', color: 'white' }}
+                className="shiny-button p-2 rounded-lg"
+                style={{ background: 'linear-gradient(135deg, var(--color-emerald-500), var(--color-emerald-600))' }}
               >
                 <Plus className="w-5 h-5" />
               </button>
@@ -824,7 +821,7 @@ export function MobileDashboardFixed() {
         </section>
 
         {/* Supplements Section */}
-        <section className="card-stack section-sky">
+        <section className="card-stack section-sky neon-card">
           <div className="card-header">
             <h2 className="text-h2" style={{ color: 'var(--color-sky-500)' }}>
               Supplements
@@ -872,8 +869,8 @@ export function MobileDashboardFixed() {
                     setSuppQuickAdd({ name: '', dose: '', time: 'AM' });
                   }
                 }}
-                className="interactive p-2 rounded-lg"
-                style={{ background: 'var(--color-sky-500)', color: 'white' }}
+                className="shiny-button p-2 rounded-lg"
+                style={{ background: 'linear-gradient(135deg, var(--color-sky-500), var(--color-sky-600))' }}
               >
                 <Plus className="w-5 h-5" />
               </button>
@@ -934,10 +931,7 @@ export function MobileDashboardFixed() {
       <div className="fixed left-4 right-4 z-40" style={{ 
         bottom: `calc(var(--nav-height) + env(safe-area-inset-bottom) + 16px)` 
       }}>
-        <div className="flex items-center gap-2 p-3 rounded-full" style={{
-          background: 'var(--color-surface)',
-          border: '1px solid rgba(255, 255, 255, 0.1)'
-        }}>
+        <div className="flex items-center gap-2 p-3 rounded-full glass-morphism-enhanced gradient-border">
           <input
             id="universal-capture-input"
             type="text"
@@ -945,8 +939,8 @@ export function MobileDashboardFixed() {
             onChange={(e) => setUniversalInput(e.target.value)}
             onKeyDown={handleUniversalCapture}
             placeholder="Quick add anything... /task /block /meal /supp (N or /)" 
-            className="flex-1 bg-transparent text-body"
-            style={{ color: 'var(--color-text-primary)' }}
+            className="flex-1 bg-transparent text-body neon-input rounded-full px-3"
+            style={{ border: 'none' }}
           />
         </div>
       </div>

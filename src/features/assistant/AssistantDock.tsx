@@ -3,7 +3,6 @@ import { MessageSquare, X, Zap, Calendar, CheckSquare, Mail, Brain, Loader2, Ale
 import { cn } from '@/lib/utils'
 import { PrimaryButton } from '@/components/PrimaryButton'
 import { agentBridge } from '@/services/agentBridge'
-import { aiService } from '@/lib/ai/ai-service'
 
 interface Message {
   id: string
@@ -20,59 +19,25 @@ export function AssistantDock() {
   const [isExpanded, setIsExpanded] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
-  const [isConfigured, setIsConfigured] = useState(false)
+  const [isConfigured, setIsConfigured] = useState(true) // Always true now - backend handles it
 
   useEffect(() => {
-    // Check if AI is configured
-    const checkConfig = () => {
-      console.log('AssistantDock - checkConfig called')
-      const configured = true // AI service uses backend proxy, always configured
-      console.log('AssistantDock - AI Service configured:', configured)
-      
-      setIsConfigured(configured)
-      
-      if (configured && messages.length === 0) {
-        console.log('AssistantDock - Adding welcome message')
-        // Add welcome message
-        setMessages([{
-          id: 'welcome',
-          role: 'assistant',
-          content: `Hi! I'm your AI assistant. I can help you manage your agenda. Try commands like:
+    // Initialize agent bridge
+    agentBridge.initialize()
+    
+    // Add welcome message
+    if (messages.length === 0) {
+      setMessages([{
+        id: 'welcome',
+        role: 'assistant',
+        content: `Hi! I'm your AI assistant. I can help you manage your agenda. Try commands like:
 • "Schedule a meeting tomorrow at 2pm"
 • "Add a task to review documents"
 • "Show me today's agenda"
-• "Create a note about project ideas"`,
-          timestamp: new Date()
-        }])
-      }
-    }
-    
-    checkConfig()
-    agentBridge.initialize()
-
-    // Listen for settings changes
-    const handleStorageChange = (e: StorageEvent) => {
-      console.log('AssistantDock - Storage changed:', e.key, e.newValue)
-      if (e.key === 'ai_config') {
-        checkConfig()
-      }
-    }
-    
-    // Listen for custom settings saved event
-    const handleSettingsSaved = () => {
-      console.log('AssistantDock - Settings saved event received, rechecking AI config')
-      // Add a small delay to ensure localStorage is updated
-      setTimeout(() => {
-        checkConfig()
-      }, 100)
-    }
-
-    window.addEventListener('storage', handleStorageChange)
-    window.addEventListener('ai-settings-saved', handleSettingsSaved)
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange)
-      window.removeEventListener('ai-settings-saved', handleSettingsSaved)
+• "Create a note about project ideas"
+• "What's on my schedule?"`,
+        timestamp: new Date()
+      }])
     }
   }, [messages.length])
 
@@ -81,40 +46,30 @@ export function AssistantDock() {
       icon: Calendar, 
       label: 'Add Event', 
       action: 'schedule',
-      command: 'Add a new calendar event'
+      command: 'Schedule a meeting at 2pm today'
     },
     { 
       icon: CheckSquare, 
       label: 'Add Task', 
       action: 'task',
-      command: 'Create a new task'
+      command: 'Add task to review documents'
     },
     { 
       icon: Mail, 
       label: 'Draft Email', 
       action: 'email',
-      command: 'Draft an email'
+      command: 'Draft an email to the team'
     },
     { 
       icon: Brain, 
       label: 'Analyze', 
       action: 'analyze',
-      command: 'Analyze my schedule and productivity'
+      command: "Show me today's progress"
     }
   ]
 
   const handleSend = async () => {
     if (!message.trim() || isProcessing) return
-    
-    if (!isConfigured) {
-      setMessages(prev => [...prev, {
-        id: Date.now().toString(),
-        role: 'system',
-        content: 'Please configure your AI credentials in Settings to use the assistant.',
-        timestamp: new Date()
-      }])
-      return
-    }
     
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -129,25 +84,19 @@ export function AssistantDock() {
     setIsProcessing(true)
     
     try {
-      // Process with AI service (uses backend proxy)
-      const response = await aiService.send(userMessage.content, {
-        stream: false
-      })
+      // Process command through agent bridge
+      const result = await agentBridge.processNaturalCommand(userMessage.content)
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: response,
+        content: result.message,
         timestamp: new Date(),
-        status: 'sent'
+        status: result.success ? 'sent' : 'error',
+        actions: result.results
       }
       
       setMessages(prev => [...prev, assistantMessage])
-      
-      // Dispatch events to update the UI
-      window.dispatchEvent(new CustomEvent('agenda-updated'))
-      window.dispatchEvent(new CustomEvent('tasks-updated'))
-      window.dispatchEvent(new CustomEvent('notes-updated'))
       
     } catch (error) {
       console.error('Assistant error:', error)
@@ -164,21 +113,17 @@ export function AssistantDock() {
   }
 
   const handleToolClick = async (tool: typeof tools[0]) => {
-    if (!isConfigured || isProcessing) return
+    if (isProcessing) return
     
-    console.log('Tool clicked:', tool.label, tool.command)
+    // Set the command in input
     setMessage(tool.command)
     
-    // Auto-send the command after a short delay
+    // Auto-send after a short delay
     setTimeout(async () => {
-      if (!tool.command.trim() || isProcessing) return
-      
-      console.log('Auto-sending tool command:', tool.command)
-      
       const userMessage: Message = {
         id: Date.now().toString(),
         role: 'user',
-        content: tool.command.trim(),
+        content: tool.command,
         timestamp: new Date(),
         status: 'sent'
       }
@@ -188,26 +133,19 @@ export function AssistantDock() {
       setIsProcessing(true)
       
       try {
-        const response = await aiService.send(userMessage.content, {
-          stream: false
-        })
+        // Process command through agent bridge
+        const result = await agentBridge.processNaturalCommand(tool.command)
         
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: response,
+          content: result.message,
           timestamp: new Date(),
-          status: 'sent'
+          status: result.success ? 'sent' : 'error',
+          actions: result.results
         }
         
         setMessages(prev => [...prev, assistantMessage])
-        
-        // Always trigger UI updates
-        if (true) {
-          window.dispatchEvent(new CustomEvent('agenda-updated'))
-          window.dispatchEvent(new CustomEvent('tasks-updated'))
-          window.dispatchEvent(new CustomEvent('notes-updated'))
-        }
         
       } catch (error) {
         console.error('Tool command error:', error)
@@ -269,7 +207,7 @@ export function AssistantDock() {
           <div className="flex items-center gap-2">
             <div className={cn(
               "w-2 h-2 rounded-full",
-              isConfigured ? "bg-green-500 animate-pulse" : "bg-yellow-500"
+              "bg-green-500 animate-pulse"
             )} />
             <h3 className="font-semibold">AI Assistant</h3>
             {isProcessing && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
@@ -316,14 +254,14 @@ export function AssistantDock() {
               <button
                 key={tool.action}
                 onClick={() => handleToolClick(tool)}
-                disabled={!isConfigured || isProcessing}
+                disabled={isProcessing}
                 className={cn(
                   "p-2 rounded-lg",
                   "bg-muted/50 hover:bg-muted",
                   "flex flex-col items-center gap-1",
                   "transition-all duration-150",
                   "hover:scale-105 active:scale-95",
-                  (!isConfigured || isProcessing) && "opacity-50 cursor-not-allowed"
+                  isProcessing && "opacity-50 cursor-not-allowed"
                 )}
               >
                 <tool.icon className="w-4 h-4" />
@@ -362,7 +300,7 @@ export function AssistantDock() {
                       <div className="mt-2 pt-2 border-t border-border/50">
                         <div className="flex items-center gap-1 text-xs text-green-500">
                           <CheckCircle className="w-3 h-3" />
-                          <span>{msg.actions.length} action(s) completed</span>
+                          <span>{msg.actions.filter(a => a.success).length} action(s) completed</span>
                         </div>
                       </div>
                     )}
@@ -397,21 +335,14 @@ export function AssistantDock() {
 
         {/* Input Area */}
         <div className="p-4 border-t border-border">
-          {!isConfigured && (
-            <div className="mb-3 p-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-              <p className="text-xs text-yellow-500">
-                Configure AI in Settings to enable assistant
-              </p>
-            </div>
-          )}
           <div className="flex gap-2">
             <input
               type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-              placeholder={isConfigured ? "Ask me anything..." : "AI not configured"}
-              disabled={!isConfigured || isProcessing}
+              placeholder="Type a command or question..."
+              disabled={isProcessing}
               className={cn(
                 "flex-1 px-3 py-2 rounded-lg",
                 "bg-background border border-border",
@@ -427,7 +358,7 @@ export function AssistantDock() {
               size="sm"
               variant="accent"
               className="px-4"
-              disabled={!isConfigured || isProcessing || !message.trim()}
+              disabled={isProcessing || !message.trim()}
             >
               {isProcessing ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
