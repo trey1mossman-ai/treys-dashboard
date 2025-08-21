@@ -1,134 +1,144 @@
 import { localBrain, Pattern, LifeEvent } from '../database/local-brain';
 
+interface TimePattern {
+  hour: number;
+  activity: string;
+  frequency: number;
+  dayOfWeek?: number[];
+}
+
 interface Prediction {
   activity: string;
   confidence: number;
-  reasoning?: string;
-  suggestedTime?: Date;
-}
-
-interface ActivityFrequency {
-  activity: string;
-  frequency: number;
-  count: number;
+  reason?: string;
 }
 
 class PatternDetector {
   private patterns: Map<string, Pattern> = new Map();
-  private learningEnabled = true;
+  private timePatterns: TimePattern[] = [];
+  
+  constructor() {
+    this.loadPatterns();
+    this.initializeDefaultPatterns();
+  }
+  
+  // Initialize with your research-based patterns
+  private initializeDefaultPatterns() {
+    // Your specific patterns from research
+    this.timePatterns = [
+      { hour: 7, activity: 'wake_up', frequency: 0.85 },
+      { hour: 9, activity: 'deep_work_start', frequency: 0.80 },
+      { hour: 10, activity: 'daily_standup', frequency: 0.95, dayOfWeek: [1,2,3,4,5] },
+      { hour: 11, activity: 'deep_work_peak', frequency: 0.85 },
+      { hour: 12, activity: 'lunch_break', frequency: 0.90 },
+      { hour: 14, activity: 'low_energy_period', frequency: 0.75 },
+      { hour: 15, activity: 'afternoon_focus', frequency: 0.80 },
+      { hour: 16, activity: 'email_triage', frequency: 0.70 },
+      { hour: 18, activity: 'workout', frequency: 0.85, dayOfWeek: [1,3,5] },
+      { hour: 22, activity: 'wind_down', frequency: 0.80 }
+    ];
+  }
+  
+  private async loadPatterns() {
+    const stored = await localBrain.patterns.toArray();
+    stored.forEach(pattern => {
+      this.patterns.set(`${pattern.type}:${pattern.subtype}`, pattern);
+    });
+  }
   
   async detectDailyPatterns(events: LifeEvent[]): Promise<Pattern[]> {
     const detected: Pattern[] = [];
     
-    try {
-      // Time-based patterns
-      const timePatterns = await this.findTimePatterns(events);
-      detected.push(...timePatterns);
-      
-      // Task patterns
-      const taskPatterns = await this.findTaskPatterns(events);
-      detected.push(...taskPatterns);
-      
-      // Energy patterns
-      const energyPatterns = await this.findEnergyPatterns(events);
-      detected.push(...energyPatterns);
-      
-      // Sequence patterns (what usually follows what)
-      const sequencePatterns = await this.findSequencePatterns(events);
-      detected.push(...sequencePatterns);
-      
-      // Store detected patterns
-      for (const pattern of detected) {
-        await this.storePattern(pattern);
-      }
-      
-      return detected;
-      
-    } catch (error) {
-      console.error('Pattern detection error:', error);
-      return [];
+    // Time-based patterns
+    const timePatterns = this.findTimePatterns(events);
+    detected.push(...timePatterns);
+    
+    // Task patterns (30-40 unique weekly, 50% templatable from research)
+    const taskPatterns = this.findTaskPatterns(events);
+    detected.push(...taskPatterns);
+    
+    // Energy patterns (post-lunch dip at 2-3pm from research)
+    const energyPatterns = this.findEnergyPatterns(events);
+    detected.push(...energyPatterns);
+    
+    // Productivity patterns
+    const productivityPatterns = this.findProductivityPatterns(events);
+    detected.push(...productivityPatterns);
+    
+    // Store detected patterns
+    for (const pattern of detected) {
+      await localBrain.patterns.add(pattern);
+      this.patterns.set(`${pattern.type}:${pattern.subtype}`, pattern);
     }
+    
+    return detected;
   }
   
-  private async findTimePatterns(events: LifeEvent[]): Promise<Pattern[]> {
+  private findTimePatterns(events: LifeEvent[]): Pattern[] {
     const patterns: Pattern[] = [];
-    const hourlyActivity = new Map<number, string[]>();
+    const hourlyActivity = new Map<number, Map<string, number>>();
     
     // Group activities by hour
     events.forEach(event => {
       const hour = new Date(event.timestamp).getHours();
       if (!hourlyActivity.has(hour)) {
-        hourlyActivity.set(hour, []);
+        hourlyActivity.set(hour, new Map());
       }
-      hourlyActivity.get(hour)!.push(event.type);
+      
+      const activities = hourlyActivity.get(hour)!;
+      const count = activities.get(event.type) || 0;
+      activities.set(event.type, count + 1);
     });
     
-    // Find consistent patterns (70%+ consistency)
+    // Identify consistent patterns (>70% consistency threshold from research)
     hourlyActivity.forEach((activities, hour) => {
-      const mostCommon = this.getMostFrequent(activities);
-      if (mostCommon.frequency > 0.7) {
-        patterns.push({
-          type: 'time',
-          subtype: `hour_${hour}`,
-          description: `Usually ${mostCommon.activity} at ${hour}:00`,
-          confidence: mostCommon.frequency,
-          lastSeen: new Date(),
-          metadata: { hour, activity: mostCommon.activity, count: mostCommon.count }
-        });
-      }
-    });
-    
-    // Day of week patterns
-    const weeklyActivity = new Map<number, string[]>();
-    events.forEach(event => {
-      const dayOfWeek = new Date(event.timestamp).getDay();
-      if (!weeklyActivity.has(dayOfWeek)) {
-        weeklyActivity.set(dayOfWeek, []);
-      }
-      weeklyActivity.get(dayOfWeek)!.push(event.type);
-    });
-    
-    weeklyActivity.forEach((activities, dayOfWeek) => {
-      const mostCommon = this.getMostFrequent(activities);
-      if (mostCommon.frequency > 0.6) {
-        const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dayOfWeek];
-        patterns.push({
-          type: 'weekly',
-          subtype: `day_${dayOfWeek}`,
-          description: `Usually ${mostCommon.activity} on ${dayName}`,
-          confidence: mostCommon.frequency,
-          lastSeen: new Date(),
-          metadata: { dayOfWeek, dayName, activity: mostCommon.activity }
-        });
-      }
+      const total = Array.from(activities.values()).reduce((sum, count) => sum + count, 0);
+      
+      activities.forEach((count, activity) => {
+        const frequency = count / total;
+        
+        if (frequency > 0.7) {
+          patterns.push({
+            type: 'time',
+            subtype: `hour_${hour}`,
+            description: `Usually ${activity} at ${hour}:00`,
+            confidence: frequency,
+            lastSeen: new Date()
+          });
+        }
+      });
     });
     
     return patterns;
   }
   
-  private async findTaskPatterns(events: LifeEvent[]): Promise<Pattern[]> {
+  private findTaskPatterns(events: LifeEvent[]): Pattern[] {
     const patterns: Pattern[] = [];
-    const taskEvents = events.filter(e => e.type.includes('task') || e.type.includes('todo'));
+    const taskFrequency = new Map<string, number>();
     
-    // Find recurring task types
-    const taskTypes = new Map<string, number>();
-    taskEvents.forEach(event => {
-      const taskType = this.categorizeTask(event.data?.title || event.type);
-      taskTypes.set(taskType, (taskTypes.get(taskType) || 0) + 1);
-    });
+    // Count task occurrences
+    events
+      .filter(e => e.type === 'task' || e.type === 'task_completed')
+      .forEach(event => {
+        const taskName = event.data?.title || event.data?.name || '';
+        const normalized = this.normalizeTaskName(taskName);
+        taskFrequency.set(normalized, (taskFrequency.get(normalized) || 0) + 1);
+      });
     
-    // Identify highly recurring tasks
-    const totalTasks = taskEvents.length;
-    taskTypes.forEach((count, taskType) => {
-      const frequency = count / totalTasks;
-      if (frequency > 0.1 && count > 3) { // More than 10% of tasks and at least 3 occurrences
+    // Identify recurring tasks (appear at least weekly)
+    const totalWeeks = this.getTimeSpanInWeeks(events);
+    
+    taskFrequency.forEach((count, task) => {
+      const weeklyFrequency = count / Math.max(1, totalWeeks);
+      
+      if (weeklyFrequency >= 1) {
         patterns.push({
           type: 'task',
-          subtype: taskType,
-          description: `Frequently performs ${taskType} tasks`,
-          confidence: Math.min(frequency * 2, 0.9), // Cap at 90%
+          subtype: 'recurring',
+          description: `Recurring task: ${task} (${weeklyFrequency.toFixed(1)}x/week)`,
+          confidence: Math.min(0.95, weeklyFrequency / 2), // Cap confidence
           lastSeen: new Date(),
-          metadata: { taskType, count, frequency }
+          metadata: { task, frequency: weeklyFrequency }
         });
       }
     });
@@ -136,285 +146,229 @@ class PatternDetector {
     return patterns;
   }
   
-  private async findEnergyPatterns(events: LifeEvent[]): Promise<Pattern[]> {
+  private findEnergyPatterns(events: LifeEvent[]): Pattern[] {
     const patterns: Pattern[] = [];
     
-    // Based on common productivity research and user behavior
-    const energyMap = new Map<number, { high: number; medium: number; low: number }>();
+    // Based on research: energy dips 2-3pm, peaks 10-11am and 4pm
+    const energyProfile = {
+      7: 0.6,   // Wake up - moderate
+      8: 0.7,   // Morning routine
+      9: 0.8,   // Rising energy
+      10: 0.95, // Peak morning energy
+      11: 0.9,  // Still high
+      12: 0.7,  // Pre-lunch
+      13: 0.5,  // Post-lunch
+      14: 0.4,  // Energy dip (research confirmed)
+      15: 0.6,  // Recovery
+      16: 0.75, // Second peak
+      17: 0.7,  // Good energy
+      18: 0.6,  // Evening
+      19: 0.5,  // Dinner time
+      20: 0.4,  // Winding down
+      21: 0.3,  // Low energy
+      22: 0.2   // Bedtime approaching
+    };
     
-    events.forEach(event => {
-      const hour = new Date(event.timestamp).getHours();
-      if (!energyMap.has(hour)) {
-        energyMap.set(hour, { high: 0, medium: 0, low: 0 });
-      }
-      
-      const energy = energyMap.get(hour)!;
-      
-      // Categorize activities by typical energy requirement
-      if (this.isHighEnergyActivity(event.type)) {
-        energy.high++;
-      } else if (this.isLowEnergyActivity(event.type)) {
-        energy.low++;
-      } else {
-        energy.medium++;
-      }
-    });
-    
-    // Identify energy patterns
-    energyMap.forEach((energy, hour) => {
-      const total = energy.high + energy.medium + energy.low;
-      if (total > 5) { // Enough data points
-        const highRatio = energy.high / total;
-        const lowRatio = energy.low / total;
-        
-        if (highRatio > 0.6) {
-          patterns.push({
-            type: 'energy',
-            subtype: 'high',
-            description: `High energy period around ${hour}:00`,
-            confidence: highRatio,
-            lastSeen: new Date(),
-            metadata: { hour, energyLevel: 'high', ratio: highRatio }
-          });
-        } else if (lowRatio > 0.6) {
-          patterns.push({
-            type: 'energy',
-            subtype: 'low',
-            description: `Low energy period around ${hour}:00`,
-            confidence: lowRatio,
-            lastSeen: new Date(),
-            metadata: { hour, energyLevel: 'low', ratio: lowRatio }
-          });
-        }
-      }
-    });
-    
-    return patterns;
-  }
-  
-  private async findSequencePatterns(events: LifeEvent[]): Promise<Pattern[]> {
-    const patterns: Pattern[] = [];
-    const sequences = new Map<string, Map<string, number>>();
-    
-    // Look for activity sequences
-    for (let i = 0; i < events.length - 1; i++) {
-      const current = events[i].type;
-      const next = events[i + 1].type;
-      
-      if (!sequences.has(current)) {
-        sequences.set(current, new Map());
-      }
-      
-      const nextMap = sequences.get(current)!;
-      nextMap.set(next, (nextMap.get(next) || 0) + 1);
-    }
-    
-    // Find strong sequence patterns
-    sequences.forEach((nextMap, current) => {
-      const total = Array.from(nextMap.values()).reduce((sum, count) => sum + count, 0);
-      
-      nextMap.forEach((count, next) => {
-        const probability = count / total;
-        if (probability > 0.7 && count > 3) {
-          patterns.push({
-            type: 'sequence',
-            subtype: `${current}_to_${next}`,
-            description: `Usually ${next} after ${current}`,
-            confidence: probability,
-            lastSeen: new Date(),
-            metadata: { from: current, to: next, count, probability }
-          });
-        }
+    Object.entries(energyProfile).forEach(([hour, level]) => {
+      patterns.push({
+        type: 'energy',
+        subtype: `hour_${hour}`,
+        description: `Energy level at ${hour}:00: ${(level * 100).toFixed(0)}%`,
+        confidence: 0.85, // Based on research data
+        lastSeen: new Date(),
+        metadata: { hour: parseInt(hour), level }
       });
     });
     
     return patterns;
   }
   
-  async predictNext(_currentContext: any): Promise<Prediction> {
-    const now = new Date();
+  private findProductivityPatterns(events: LifeEvent[]): Pattern[] {
+    const patterns: Pattern[] = [];
+    
+    // Analyze completed tasks by time of day
+    const completionsByHour = new Map<number, number>();
+    const taskDurations = new Map<string, number[]>();
+    
+    events
+      .filter(e => e.type === 'task_completed')
+      .forEach(event => {
+        const hour = new Date(event.timestamp).getHours();
+        completionsByHour.set(hour, (completionsByHour.get(hour) || 0) + 1);
+        
+        // Track task duration if available
+        if (event.data?.duration) {
+          const taskType = event.data?.category || 'general';
+          if (!taskDurations.has(taskType)) {
+            taskDurations.set(taskType, []);
+          }
+          taskDurations.get(taskType)!.push(event.data.duration);
+        }
+      });
+    
+    // Find peak productivity hours
+    const totalCompletions = Array.from(completionsByHour.values()).reduce((sum, c) => sum + c, 0);
+    
+    completionsByHour.forEach((count, hour) => {
+      const percentage = (count / totalCompletions) * 100;
+      
+      if (percentage > 10) { // Significant productivity
+        patterns.push({
+          type: 'productivity',
+          subtype: `peak_hour_${hour}`,
+          description: `High productivity at ${hour}:00 (${percentage.toFixed(0)}% of tasks)`,
+          confidence: Math.min(0.9, percentage / 20),
+          lastSeen: new Date(),
+          metadata: { hour, percentage }
+        });
+      }
+    });
+    
+    // Average task durations by type
+    taskDurations.forEach((durations, taskType) => {
+      const avgDuration = durations.reduce((sum, d) => sum + d, 0) / durations.length;
+      
+      patterns.push({
+        type: 'task_duration',
+        subtype: taskType,
+        description: `${taskType} tasks typically take ${avgDuration} minutes`,
+        confidence: Math.min(0.9, durations.length / 10), // More data = higher confidence
+        lastSeen: new Date(),
+        metadata: { taskType, avgDuration, sampleSize: durations.length }
+      });
+    });
+    
+    return patterns;
+  }
+  
+  // Predict next activity based on current context
+  predictNext(context: { time?: Date; recentEvents?: LifeEvent[] } = {}): Prediction {
+    const now = context.time || new Date();
     const hour = now.getHours();
     const dayOfWeek = now.getDay();
+    const minute = now.getMinutes();
     
-    try {
-      // Load stored patterns
-      await this.loadStoredPatterns();
-      
-      // Time-based predictions
-      const timePattern = this.patterns.get(`time_hour_${hour}`);
-      if (timePattern && timePattern.confidence > 0.7) {
+    // Check for specific time patterns
+    for (const pattern of this.timePatterns) {
+      if (pattern.hour === hour) {
+        // Check day of week if specified
+        if (pattern.dayOfWeek && !pattern.dayOfWeek.includes(dayOfWeek)) {
+          continue;
+        }
+        
+        // Adjust confidence based on how close to the hour we are
+        const timingConfidence = minute < 15 ? 1.0 : minute < 30 ? 0.8 : 0.6;
+        
         return {
-          activity: timePattern.metadata?.activity || 'routine_tasks',
-          confidence: timePattern.confidence,
-          reasoning: `Based on your pattern of ${timePattern.description}`,
-          suggestedTime: now
+          activity: pattern.activity,
+          confidence: pattern.frequency * timingConfidence,
+          reason: `Based on your usual pattern at ${hour}:00`
         };
       }
+    }
+    
+    // Check stored patterns
+    const timePattern = this.patterns.get(`time:hour_${hour}`);
+    if (timePattern && timePattern.confidence > 0.7) {
+      return {
+        activity: timePattern.metadata?.activity || 'routine_task',
+        confidence: timePattern.confidence,
+        reason: timePattern.description
+      };
+    }
+    
+    // Energy-based prediction
+    const energyPattern = this.patterns.get(`energy:hour_${hour}`);
+    if (energyPattern) {
+      const energyLevel = energyPattern.metadata?.level || 0.5;
       
-      // Day-based predictions
-      const dayPattern = this.patterns.get(`weekly_day_${dayOfWeek}`);
-      if (dayPattern && dayPattern.confidence > 0.6) {
+      if (energyLevel > 0.8) {
         return {
-          activity: dayPattern.metadata?.activity || 'routine_tasks',
-          confidence: dayPattern.confidence,
-          reasoning: `Based on your weekly pattern: ${dayPattern.description}`
+          activity: 'deep_work',
+          confidence: 0.75,
+          reason: 'High energy period - good for complex tasks'
+        };
+      } else if (energyLevel < 0.4) {
+        return {
+          activity: 'low_effort_task',
+          confidence: 0.70,
+          reason: 'Low energy period - better for simple tasks'
         };
       }
-      
-      // Fallback to hardcoded productive patterns
-      if (hour >= 9 && hour < 11) {
-        return { activity: 'deep_work', confidence: 0.85, reasoning: 'Prime morning focus time' };
-      }
-      if (hour >= 14 && hour < 15) {
-        return { activity: 'low_energy_tasks', confidence: 0.75, reasoning: 'Post-lunch energy dip' };
-      }
-      if (hour >= 15 && hour < 17) {
-        return { activity: 'meetings_collaboration', confidence: 0.80, reasoning: 'Afternoon collaboration time' };
-      }
-      
-      // Monday planning, workout patterns
-      if (dayOfWeek === 1 && hour === 9) {
-        return { activity: 'weekly_planning', confidence: 0.90, reasoning: 'Monday morning planning' };
-      }
-      if ([1, 3, 5].includes(dayOfWeek) && hour === 18) {
-        return { activity: 'workout', confidence: 0.85, reasoning: 'Regular workout schedule' };
-      }
-      
-      return { activity: 'routine_tasks', confidence: 0.60, reasoning: 'Default routine period' };
-      
-    } catch (error) {
-      console.error('Prediction error:', error);
-      return { activity: 'routine_tasks', confidence: 0.5, reasoning: 'Fallback prediction' };
-    }
-  }
-  
-  private getMostFrequent(activities: string[]): ActivityFrequency {
-    const counts = new Map<string, number>();
-    activities.forEach(activity => {
-      counts.set(activity, (counts.get(activity) || 0) + 1);
-    });
-    
-    let maxCount = 0;
-    let mostCommon = '';
-    counts.forEach((count, activity) => {
-      if (count > maxCount) {
-        maxCount = count;
-        mostCommon = activity;
-      }
-    });
-    
-    return {
-      activity: mostCommon,
-      frequency: activities.length > 0 ? maxCount / activities.length : 0,
-      count: maxCount
-    };
-  }
-  
-  private categorizeTask(taskTitle: string): string {
-    const title = taskTitle.toLowerCase();
-    
-    if (title.includes('email') || title.includes('respond') || title.includes('reply')) {
-      return 'communication';
-    }
-    if (title.includes('meeting') || title.includes('call') || title.includes('discuss')) {
-      return 'meetings';
-    }
-    if (title.includes('code') || title.includes('develop') || title.includes('implement')) {
-      return 'development';
-    }
-    if (title.includes('plan') || title.includes('strategy') || title.includes('review')) {
-      return 'planning';
-    }
-    if (title.includes('learn') || title.includes('research') || title.includes('study')) {
-      return 'learning';
-    }
-    if (title.includes('admin') || title.includes('paperwork') || title.includes('file')) {
-      return 'administrative';
     }
     
-    return 'general';
-  }
-  
-  private isHighEnergyActivity(activityType: string): boolean {
-    const high = ['deep_work', 'development', 'creative', 'presentation', 'important_meeting'];
-    return high.some(type => activityType.includes(type));
-  }
-  
-  private isLowEnergyActivity(activityType: string): boolean {
-    const low = ['email', 'admin', 'routine', 'filing', 'simple_task'];
-    return low.some(type => activityType.includes(type));
-  }
-  
-  private async storePattern(pattern: Pattern): Promise<void> {
-    if (!this.learningEnabled) return;
-    
-    try {
-      const key = `${pattern.type}_${pattern.subtype}`;
-      
-      // Check if pattern already exists
-      const existing = await localBrain.patterns
-        .where('type')
-        .equals(pattern.type)
-        .and(p => p.subtype === pattern.subtype)
-        .first();
-      
-      if (existing) {
-        // Update existing pattern
-        await localBrain.patterns.update(existing.id!, {
-          confidence: (existing.confidence + pattern.confidence) / 2, // Average confidence
-          lastSeen: pattern.lastSeen,
-          metadata: pattern.metadata
-        });
-      } else {
-        // Add new pattern
-        await localBrain.patterns.add(pattern);
-      }
-      
-      // Update local cache
-      this.patterns.set(key, pattern);
-      
-    } catch (error) {
-      console.error('Failed to store pattern:', error);
+    // Default based on time of day
+    if (hour >= 9 && hour < 12) {
+      return { activity: 'focused_work', confidence: 0.65, reason: 'Morning work block' };
+    } else if (hour >= 14 && hour < 17) {
+      return { activity: 'meetings_or_calls', confidence: 0.60, reason: 'Afternoon collaboration time' };
+    } else if (hour >= 17 && hour < 19) {
+      return { activity: 'wrap_up', confidence: 0.65, reason: 'End of day tasks' };
     }
+    
+    return { activity: 'flexible_time', confidence: 0.50, reason: 'No strong pattern detected' };
   }
   
-  private async loadStoredPatterns(): Promise<void> {
-    try {
-      const storedPatterns = await localBrain.patterns.toArray();
-      this.patterns.clear();
-      
-      storedPatterns.forEach(pattern => {
-        const key = `${pattern.type}_${pattern.subtype}`;
-        this.patterns.set(key, pattern);
-      });
-    } catch (error) {
-      console.error('Failed to load patterns:', error);
+  // Get insights about patterns
+  async getInsights(): Promise<string[]> {
+    const insights: string[] = [];
+    const patterns = await localBrain.patterns.toArray();
+    
+    // Find strongest patterns
+    const strongPatterns = patterns.filter(p => p.confidence > 0.85);
+    if (strongPatterns.length > 0) {
+      insights.push(`You have ${strongPatterns.length} highly consistent patterns in your routine`);
     }
+    
+    // Energy insights
+    const energyPatterns = patterns.filter(p => p.type === 'energy');
+    const peakEnergy = energyPatterns.reduce((peak, p) => {
+      return (p.metadata?.level > peak.metadata?.level) ? p : peak;
+    }, energyPatterns[0]);
+    
+    if (peakEnergy) {
+      insights.push(`Your peak energy is typically at ${peakEnergy.subtype?.replace('hour_', '')}:00`);
+    }
+    
+    // Task insights
+    const recurringTasks = patterns.filter(p => p.type === 'task' && p.subtype === 'recurring');
+    if (recurringTasks.length > 0) {
+      insights.push(`You have ${recurringTasks.length} recurring tasks that could be automated`);
+    }
+    
+    // Productivity insights
+    const productivityPatterns = patterns.filter(p => p.type === 'productivity');
+    if (productivityPatterns.length > 0) {
+      const bestHour = productivityPatterns.reduce((best, p) => {
+        return (p.metadata?.percentage > best.metadata?.percentage) ? p : best;
+      }, productivityPatterns[0]);
+      
+      insights.push(`You're most productive at ${bestHour.metadata?.hour}:00`);
+    }
+    
+    return insights;
   }
   
-  async getPatternSummary(): Promise<{ patterns: number; confidence: number; lastAnalysis: Date | null }> {
-    await this.loadStoredPatterns();
-    
-    const patterns = Array.from(this.patterns.values());
-    const avgConfidence = patterns.length > 0 
-      ? patterns.reduce((sum, p) => sum + p.confidence, 0) / patterns.length 
-      : 0;
-    
-    const lastAnalysis = patterns.length > 0 
-      ? new Date(Math.max(...patterns.map(p => p.lastSeen.getTime())))
-      : null;
-    
-    return {
-      patterns: patterns.length,
-      confidence: avgConfidence,
-      lastAnalysis
-    };
+  // Helper methods
+  private normalizeTaskName(task: string): string {
+    return task.toLowerCase()
+      .replace(/[^\w\s]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
   
-  enableLearning(enabled: boolean): void {
-    this.learningEnabled = enabled;
+  private getTimeSpanInWeeks(events: LifeEvent[]): number {
+    if (events.length === 0) return 0;
+    
+    const timestamps = events.map(e => e.timestamp);
+    const earliest = Math.min(...timestamps);
+    const latest = Math.max(...timestamps);
+    const spanMs = latest - earliest;
+    const spanWeeks = spanMs / (1000 * 60 * 60 * 24 * 7);
+    
+    return Math.max(1, spanWeeks);
   }
 }
 
 export const patternDetector = new PatternDetector();
-export type { Prediction, ActivityFrequency };
+export type { TimePattern, Prediction };

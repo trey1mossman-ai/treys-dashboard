@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Save, TestTube, Key, Globe, Mail, Download, Trash2, Moon, Sun } from 'lucide-react';
+import { Save, TestTube, Key, Globe, Mail, Download, Trash2, Moon, Sun, Calendar } from 'lucide-react';
+import { googleCalendar } from '@/lib/integrations/google-calendar';
 
 export function Settings() {
   const { toast } = useToast();
@@ -21,6 +22,7 @@ export function Settings() {
   });
 
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
+  const [isCalendarConnected, setIsCalendarConnected] = useState(googleCalendar.isConnected());
 
   const handleSave = () => {
     Object.entries(apis).forEach(([key, value]) => {
@@ -288,6 +290,74 @@ export function Settings() {
                   onChange={(e) => setApis({ ...apis, twilioPhone: e.target.value })}
                 />
               </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Calendar className="w-5 h-5" />
+              Integrations
+            </h3>
+            
+            <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Google Calendar</p>
+                  <p className="text-sm text-muted-foreground">
+                    Sync your events and let AI manage your schedule
+                  </p>
+                </div>
+                <Button
+                  variant={isCalendarConnected ? "secondary" : "default"}
+                  onClick={async () => {
+                    try {
+                      if (isCalendarConnected) {
+                        await googleCalendar.disconnect();
+                        setIsCalendarConnected(false);
+                        toast({
+                          title: 'Calendar Disconnected',
+                          description: 'Google Calendar has been disconnected.',
+                        });
+                      } else {
+                        await googleCalendar.authenticate();
+                        setIsCalendarConnected(googleCalendar.isConnected());
+                        if (googleCalendar.isConnected()) {
+                          toast({
+                            title: 'Calendar Connected',
+                            description: 'Google Calendar has been connected successfully.',
+                          });
+                        }
+                      }
+                    } catch (error) {
+                      toast({
+                        title: 'Connection Failed',
+                        description: 'Failed to connect to Google Calendar. Please try again.',
+                        variant: 'destructive'
+                      });
+                    }
+                  }}
+                >
+                  {isCalendarConnected ? (
+                    <>
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Calendar Connected ✓
+                    </>
+                  ) : (
+                    <>
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Connect Google Calendar
+                    </>
+                  )}
+                </Button>
+              </div>
+              
+              {isCalendarConnected && (
+                <div className="pt-2 border-t text-sm text-muted-foreground">
+                  <p>✓ Events will sync automatically</p>
+                  <p>✓ AI can create and manage calendar events</p>
+                  <p>✓ Conflict detection enabled</p>
+                </div>
+              )}
             </div>
           </div>
 

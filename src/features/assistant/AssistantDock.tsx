@@ -3,7 +3,7 @@ import { MessageSquare, X, Zap, Calendar, CheckSquare, Mail, Brain, Loader2, Ale
 import { cn } from '@/lib/utils'
 import { PrimaryButton } from '@/components/PrimaryButton'
 import { agentBridge } from '@/services/agentBridge'
-import { aiService } from '@/services/aiService'
+import { openAIClient } from '@/lib/ai/openai-client'
 
 interface Message {
   id: string
@@ -21,12 +21,13 @@ export function AssistantDock() {
   const [messages, setMessages] = useState<Message[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const [isConfigured, setIsConfigured] = useState(false)
+  const [chatId] = useState(() => `chat-${Date.now()}`)
 
   useEffect(() => {
     // Check if AI is configured
     const checkConfig = () => {
       console.log('AssistantDock - checkConfig called')
-      const configured = aiService.isConfigured()
+      const configured = openAIClient.isConfigured()
       console.log('AssistantDock - AI Service configured:', configured)
       
       setIsConfigured(configured)
@@ -129,22 +130,28 @@ export function AssistantDock() {
     setIsProcessing(true)
     
     try {
-      // Process the command through the agent bridge
-      const response = await agentBridge.processNaturalCommand(userMessage.content)
+      // Process with new OpenAI client
+      const response = await openAIClient.chat(userMessage.content, {
+        session: chatId,
+        stream: false
+      })
+      
+      if (response.tools) {
+        console.log('Tools executed:', response.tools)
+      }
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: response.message,
+        content: response.content,
         timestamp: new Date(),
-        status: response.success ? 'sent' : 'error',
-        actions: response.results
+        status: response.error ? 'error' : 'sent'
       }
       
       setMessages(prev => [...prev, assistantMessage])
       
       // If successful, trigger UI updates
-      if (response.success && response.results) {
+      if (!response.error) {
         // Dispatch events to update the UI
         window.dispatchEvent(new CustomEvent('agenda-updated'))
         window.dispatchEvent(new CustomEvent('tasks-updated'))
@@ -190,14 +197,21 @@ export function AssistantDock() {
       setIsProcessing(true)
       
       try {
-        const response = await agentBridge.processNaturalCommand(userMessage.content)
+        const response = await openAIClient.chat(userMessage.content, {
+          session: chatId,
+          stream: false
+        })
+        
+        if (response.tools) {
+          console.log('Tools executed:', response.tools)
+        }
         
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: response.message,
+          content: response.content,
           timestamp: new Date(),
-          status: response.success ? 'sent' : 'error',
+          status: response.error ? 'error' : 'sent',
           actions: response.results
         }
         

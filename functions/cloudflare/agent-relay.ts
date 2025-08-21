@@ -31,11 +31,22 @@ export default {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: env.MODEL_NAME || 'gpt-4',
+            model: env.MODEL_NAME || 'gpt-4o-mini',
             messages,
             temperature: 0.7,
           }),
         })
+
+        if (!response.ok) {
+          const errorData = await response.text()
+          console.error('OpenAI API error:', response.status, errorData)
+          return new Response(JSON.stringify({ 
+            error: `OpenAI API error (${response.status}): ${errorData}` 
+          }), {
+            status: response.status,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        }
 
         const data = await response.json()
         return new Response(JSON.stringify({

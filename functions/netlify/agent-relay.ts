@@ -30,11 +30,22 @@ export const handler: Handler = async (event) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: modelName || 'gpt-4',
+          model: modelName || 'gpt-4o-mini',
           messages,
           temperature: 0.7,
         }),
       })
+
+      if (!response.ok) {
+        const errorData = await response.text()
+        console.error('OpenAI API error:', response.status, errorData)
+        return {
+          statusCode: response.status,
+          body: JSON.stringify({ 
+            error: `OpenAI API error (${response.status}): ${errorData}` 
+          }),
+        }
+      }
 
       const data = await response.json()
       return {

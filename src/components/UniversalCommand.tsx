@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Command } from 'cmdk';
 import { modelRouter } from '@/lib/ai/model-router';
-import { autoPilot } from '@/lib/automation/autopilot';
+import { autoPilot } from '@/lib/automation/autopilot-v2';
 import { localBrain } from '@/lib/database/local-brain';
 
 interface CommandSuggestion {
@@ -234,13 +234,13 @@ export function UniversalCommand() {
   
   const showSystemStatus = async () => {
     const stats = await modelRouter.getUsageStats();
-    const autopilotStatus = autoPilot.getStatus();
+    const autopilotStatus = await autoPilot.getStatus();
     
     const status = `System Status:
 Cache Hit Rate: ${(stats.cache.hitRate * 100).toFixed(1)}%
 Daily Cost: $${stats.cost.daily}
 AutoPilot: ${autopilotStatus.running ? 'Running' : 'Stopped'}
-Active Rules: ${autopilotStatus.rules}`;
+Active Rules: ${autopilotStatus.rulesCount}`;
     
     showNotification(status, 'info');
   };

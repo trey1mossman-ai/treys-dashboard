@@ -1,8 +1,9 @@
 interface CostStats {
-  daily: string;
-  monthly: string;
-  remaining: string;
-  projection: string;
+  daily: number;
+  monthly: number;
+  remaining: number;
+  projection: number;
+  calls: number;
 }
 
 class CostController {
@@ -10,6 +11,7 @@ class CostController {
   private monthlySpend = 0;
   private lastReset = new Date();
   private storageKey = 'lifeos-cost-tracking';
+  private apiCalls = 0;
   
   constructor(private monthlyBudget: number = Number(import.meta.env.VITE_MONTHLY_BUDGET || 100)) {
     this.loadFromStorage();
@@ -41,6 +43,7 @@ class CostController {
     
     this.dailySpend += cost;
     this.monthlySpend += cost;
+    this.apiCalls++;
     this.saveToStorage();
     
     // Alert if approaching limits
@@ -55,10 +58,11 @@ class CostController {
   
   getStats(): CostStats {
     return {
-      daily: this.dailySpend.toFixed(2),
-      monthly: this.monthlySpend.toFixed(2),
-      remaining: (this.monthlyBudget - this.monthlySpend).toFixed(2),
-      projection: (this.dailySpend * 30).toFixed(2)
+      daily: Number(this.dailySpend.toFixed(3)),
+      monthly: Number(this.monthlySpend.toFixed(2)),
+      remaining: Number((this.monthlyBudget - this.monthlySpend).toFixed(2)),
+      projection: Number((this.dailySpend * 30).toFixed(2)),
+      calls: this.apiCalls
     };
   }
   
@@ -85,6 +89,7 @@ class CostController {
         now.getMonth() !== lastResetDate.getMonth() ||
         now.getFullYear() !== lastResetDate.getFullYear()) {
       this.dailySpend = 0;
+      this.apiCalls = 0;
       this.lastReset = now;
       this.saveToStorage();
     }
@@ -104,6 +109,7 @@ class CostController {
         const data = JSON.parse(stored);
         this.dailySpend = data.dailySpend || 0;
         this.monthlySpend = data.monthlySpend || 0;
+        this.apiCalls = data.apiCalls || 0;
         this.lastReset = new Date(data.lastReset || Date.now());
       }
     } catch (error) {
@@ -116,6 +122,7 @@ class CostController {
       const data = {
         dailySpend: this.dailySpend,
         monthlySpend: this.monthlySpend,
+        apiCalls: this.apiCalls,
         lastReset: this.lastReset.toISOString()
       };
       localStorage.setItem(this.storageKey, JSON.stringify(data));
