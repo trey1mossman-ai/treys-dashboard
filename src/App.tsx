@@ -17,7 +17,6 @@ import { performanceMonitor } from '@/lib/monitoring/performance-monitor'
 import { useAIEventListeners } from '@/hooks/useAIEventListeners'
 import { CostMonitor } from '@/components/CostMonitor'
 import { AutoPilotNotifications } from '@/components/AutoPilotNotifications'
-import { aiService } from '@/lib/ai/ai-service'
 function App() {
   const { setTheme } = useUIStore()
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)

@@ -266,7 +266,7 @@ export function ProactiveAssistant() {
       }
       
       // Check daily cost
-      const dailyCost = parseFloat(stats.cost.daily);
+      const dailyCost = stats.cost.daily;
       if (dailyCost > 2.5) { // 75% of $3.33 daily budget
         addNotification({
           id: 'cost_warning',

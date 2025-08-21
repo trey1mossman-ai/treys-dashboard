@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { 
   Command,
   CommandDialog,
@@ -19,12 +19,10 @@ import {
   Brain,
   Sparkles,
   FileText,
-  Settings,
   Loader2
 } from 'lucide-react';
 import { aiService } from '@/lib/ai/ai-service';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 
 interface AICommandPaletteProps {
   open: boolean;
@@ -49,7 +47,6 @@ export function AICommandPalette({
 }: AICommandPaletteProps) {
   const [search, setSearch] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
 
   // Natural language processing for commands
   const processNaturalLanguage = useCallback(async (input: string) => {

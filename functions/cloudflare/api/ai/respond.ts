@@ -1,4 +1,5 @@
-import { json, cors } from '../../_utils/cors';
+import { json } from '../../_utils/json';
+import { corsHeaders, handleOptions } from '../../_utils/cors';
 
 export interface Env {
   PROVIDER: string;
@@ -364,7 +365,7 @@ export async function onRequestPost(context: {
 
   // Handle CORS preflight
   if (request.method === 'OPTIONS') {
-    return cors(request);
+    return handleOptions(env);
   }
 
   try {
@@ -441,6 +442,6 @@ export async function onRequestPost(context: {
   }
 }
 
-export async function onRequestOptions(context: { request: Request }) {
-  return cors(context.request);
+export async function onRequestOptions(context: { request: Request; env: Env }) {
+  return handleOptions(context.env);
 }

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Loader2, Bot, User, Tool, Check, X } from 'lucide-react';
+import { Send, Loader2, Bot, User, Wrench, Check, X } from 'lucide-react';
 import { aiService, type Message, type StreamEvent, type ToolCall } from '@/lib/ai/ai-service';
 import { cn } from '@/lib/utils';
 
@@ -61,7 +61,7 @@ export function ChatInterface({
     setMessages(prev => [...prev, assistantMessage]);
 
     try {
-      const response = await aiService.send(userMessage.content, {
+      await aiService.send(userMessage.content, {
         system: systemPrompt,
         stream: true,
         onStream: (event: StreamEvent) => {
@@ -174,10 +174,10 @@ export function ChatInterface({
     if (!message.tool_calls || message.tool_calls.length === 0) return null;
 
     const statusConfig = {
-      pending: { icon: Tool, color: 'text-yellow-500', text: 'Preparing tools...' },
+      pending: { icon: Wrench, color: 'text-yellow-500', text: 'Preparing tools...', animate: false },
       executing: { icon: Loader2, color: 'text-blue-500', text: 'Executing actions...', animate: true },
-      success: { icon: Check, color: 'text-green-500', text: 'Actions completed' },
-      error: { icon: X, color: 'text-red-500', text: 'Action failed' }
+      success: { icon: Check, color: 'text-green-500', text: 'Actions completed', animate: false },
+      error: { icon: X, color: 'text-red-500', text: 'Action failed', animate: false }
     };
 
     const config = statusConfig[message.toolStatus || 'pending'];

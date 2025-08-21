@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Mic, Send, X, Loader2, Bot } from 'lucide-react';
 import { ChatInterface } from './ChatInterface';
 import { cn } from '@/lib/utils';

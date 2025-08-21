@@ -342,7 +342,7 @@ class AutoPilot {
       
       if (prediction.confidence > 0.8) {
         // High confidence - schedule automatically
-        await this.scheduleActivity(prediction.activity, prediction.suggestedTime);
+        await this.scheduleActivity(prediction.activity, new Date());
       } else if (prediction.confidence > 0.6) {
         // Medium confidence - suggest to user
         this.emit('activity_suggested', prediction);

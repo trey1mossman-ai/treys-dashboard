@@ -146,7 +146,7 @@ class PatternDetector {
     return patterns;
   }
   
-  private findEnergyPatterns(events: LifeEvent[]): Pattern[] {
+  private findEnergyPatterns(_events: LifeEvent[]): Pattern[] {
     const patterns: Pattern[] = [];
     
     // Based on research: energy dips 2-3pm, peaks 10-11am and 4pm
@@ -367,6 +367,22 @@ class PatternDetector {
     const spanWeeks = spanMs / (1000 * 60 * 60 * 24 * 7);
     
     return Math.max(1, spanWeeks);
+  }
+
+  // Add missing method for pattern summary
+  getPatternSummary(): string {
+    const patterns = Array.from(this.patterns.values());
+    if (patterns.length === 0) {
+      return "No patterns detected yet. Keep using the app to build insights.";
+    }
+    
+    const highConfidence = patterns.filter(p => p.confidence > 0.8);
+    const summary = [
+      `Detected ${patterns.length} patterns (${highConfidence.length} high confidence).`,
+      `Most common: ${patterns[0]?.description || 'various activities'}.`
+    ];
+    
+    return summary.join(' ');
   }
 }
 

@@ -17,9 +17,31 @@ id = "ae4c22b7500545ce99f89cefd1b88644"
 binding = "CACHE"
 id = "ed2c6b469db64da5908ca397b1365406"
 
+[[kv_namespaces]]
+binding = "AI_TOOLS"
+id = "ai-tools-kv"
+preview_id = "ai-tools-kv-preview"
+
+[[kv_namespaces]]
+binding = "AI_LOGS"
+id = "ai-logs-kv"
+preview_id = "ai-logs-kv-preview"
+
+[[kv_namespaces]]
+binding = "AI_EMBEDDINGS"
+id = "ai-embeddings-kv"
+preview_id = "ai-embeddings-kv-preview"
+
 # Environment variables (non-sensitive)
 [vars]
 VITE_PUBLIC_ORIGIN = "https://agenda-dashboard.pages.dev"
+PROVIDER = "openai"
+OPENAI_BASE_URL = "https://api.openai.com/v1"
+OPENAI_MODEL = "gpt-4o"
+ANTHROPIC_BASE_URL = "https://api.anthropic.com/v1"
+ANTHROPIC_MODEL = "claude-3-5-sonnet-20241022"
+RAG_STORE = "kv"
+ENABLE_REALTIME = "false"
 
 # Routes (optional - if using custom domain)
 # [[routes]]
@@ -39,3 +61,8 @@ local_protocol = "http"
 # wrangler secret put SENDGRID_API_KEY
 # wrangler secret put TWILIO_ACCOUNT_SID
 # wrangler secret put TWILIO_AUTH_TOKEN
+# wrangler secret put TWILIO_PHONE_NUMBER
+# wrangler secret put DEFAULT_FROM_EMAIL
+# wrangler secret put N8N_API_KEY
+# wrangler secret put PINECONE_API_KEY
+# wrangler secret put PINECONE_ENV
