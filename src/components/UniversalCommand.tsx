@@ -112,12 +112,6 @@ export function UniversalCommand() {
     }
   };
   
-  const createQuickAction = async () => {
-    const action = prompt('Quick action:');
-    if (action) {
-      await handleCommand(action);
-    }
-  };
   
   const createNote = async (content?: string) => {
     const noteContent = content || prompt('Note content:');
