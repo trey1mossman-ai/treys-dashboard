@@ -19,18 +19,16 @@ id = "ed2c6b469db64da5908ca397b1365406"
 
 [[kv_namespaces]]
 binding = "AI_TOOLS"
-id = "ai-tools-kv"
-preview_id = "ai-tools-kv-preview"
+id = "1fd010d7b1194d6080152e02a2b982a1"
+preview_id = "1ed90bf61a7a4aa5adc7c5cea33c8c45"
 
 [[kv_namespaces]]
 binding = "AI_LOGS"
-id = "ai-logs-kv"
-preview_id = "ai-logs-kv-preview"
+id = "6559f840ea1c4551b12e81260d08859b"
 
 [[kv_namespaces]]
 binding = "AI_EMBEDDINGS"
-id = "ai-embeddings-kv"
-preview_id = "ai-embeddings-kv-preview"
+id = "e7c1a4642389481da60e82a1e03d503b"
 
 # Environment variables (non-sensitive)
 [vars]
