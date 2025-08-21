@@ -2,7 +2,7 @@
  * AI Dashboard Tools - Comprehensive tool definitions for AI-controlled dashboard operations
  */
 
-import type { AgendaItem, TodoItem, FoodItem, SupplementItem } from '@/types/daily';
+// Type imports are defined inline below for better modularity
 
 // Tool categories for the AI dashboard control system
 export interface AITool {

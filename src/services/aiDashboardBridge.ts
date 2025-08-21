@@ -4,7 +4,7 @@
  */
 
 import { dashboardController } from '@/lib/ai/dashboard-controller';
-import { allDashboardTools, getToolByName, type AITool } from '@/lib/ai/dashboard-tools';
+import { allDashboardTools, type AITool } from '@/lib/ai/dashboard-tools';
 import { aiService, type AIResponse } from './aiService';
 import { toast } from 'sonner';
 
@@ -300,7 +300,7 @@ GUIDELINES:
    * Execute the actions returned by AI
    */
   private async executeActions(aiResponse: AIResponse): Promise<any[]> {
-    const results = [];
+    const results: any[] = [];
 
     if (!aiResponse.actions || !Array.isArray(aiResponse.actions)) {
       return results;

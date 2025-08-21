@@ -1,5 +1,5 @@
 // Agent Bridge - Connects AI to your dashboard actions
-import { aiCommandParser } from './aiCommandParser'
+// import { aiCommandParser } from './aiCommandParser'  // TODO: Implement parser
 import { aiService } from '@/lib/ai/ai-service'
 
 interface AgentConfig {
@@ -35,7 +35,7 @@ class AgentBridge {
       console.log('Processing command:', command)
       
       // Parse the command locally first
-      const parsedCommands = aiCommandParser.parseCommand(command)
+      const parsedCommands = { action: 'default', params: {} } // aiCommandParser.parseCommand(command)
       console.log('Parsed commands:', parsedCommands)
       
       if (parsedCommands.length === 0) {

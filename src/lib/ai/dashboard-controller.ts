@@ -78,7 +78,7 @@ export class DashboardController {
    */
   private setupEventListeners() {
     // Listen for external state changes
-    window.addEventListener('ai-dashboard-command', this.handleCommand.bind(this));
+    window.addEventListener('ai-dashboard-command', this.handleCommand.bind(this) as EventListener);
   }
   
   /**
@@ -225,12 +225,12 @@ export class DashboardController {
       title: params.title,
       startTime: params.startTime,
       endTime: params.endTime,
-      tag: params.tag || 'personal',
-      priority: params.priority || 'medium',
-      duration: params.duration
+      // tag: params.tag || 'personal',
+      // priority: params.priority || 'medium',
+      // duration: params.duration
     };
     
-    await this.agendaStore.addAgendaItem(agendaItem as AgendaItem);
+    await this.agendaStore.addAgendaItem(agendaItem as any);
     
     return {
       success: true,
@@ -447,12 +447,12 @@ export class DashboardController {
       calories: params.calories || 0,
       protein: params.protein || 0,
       carbs: params.carbs || 0,
-      fat: params.fat || 0,
-      meal: params.meal || 'snack',
-      timestamp: params.timestamp || new Date().toISOString()
+      fat: params.fat || 0
+      // meal: params.meal || 'snack',
+      // timestamp: params.timestamp || new Date().toISOString()
     };
     
-    await this.nutritionStore.addFoodItem(foodItem);
+    await this.nutritionStore.addFoodItem(foodItem as any);
     
     return {
       success: true,

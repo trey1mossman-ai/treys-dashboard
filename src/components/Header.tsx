@@ -1,4 +1,4 @@
-import { Calendar, Home, Dumbbell, MessageSquare, Settings, Clock, FileDown, Sun, Moon } from 'lucide-react'
+import { Calendar, Home, Dumbbell, MessageSquare, Settings, Clock, FileDown } from 'lucide-react'
 import { Button } from './ui/button'
 import { Link, useLocation } from 'react-router-dom'
 import { InstallPWA } from './InstallPWA'
