@@ -121,49 +121,6 @@ export function MobileDashboardFixed() {
     }
   }, [undoState, undoTimeLeft]);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      // Don't trigger shortcuts if user is typing in an input field
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      
-      switch(e.key.toLowerCase()) {
-        case 'a': 
-          e.preventDefault();
-          // Open AI modal for agenda
-          setAiModalState({ isOpen: true, section: 'agenda', generatedItems: [] });
-          console.log('Keyboard shortcut: Add agenda item (A)');
-          break;
-        case 'q':
-          e.preventDefault();
-          // Open AI modal for task
-          setAiModalState({ isOpen: true, section: 'todo', generatedItems: [] });
-          console.log('Keyboard shortcut: Add task (Q)');
-          break;
-        case 'n':
-          e.preventDefault();
-          // Focus on universal capture input if available
-          const captureInput = document.getElementById('universal-capture-input');
-          if (captureInput) {
-            captureInput.focus();
-            console.log('Keyboard shortcut: Focus capture input (N)');
-          }
-          break;
-        case '/':
-          e.preventDefault();
-          // Focus on universal capture input
-          const captureSlash = document.getElementById('universal-capture-input');
-          if (captureSlash) {
-            captureSlash.focus();
-            console.log('Keyboard shortcut: Focus capture input (/)');
-          }
-          break;
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [setAiModalState]);
 
   // Get today's date
   const today = new Date().toLocaleDateString('en-US', { 

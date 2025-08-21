@@ -62,24 +62,6 @@ function App() {
     }
   }, [])
   
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Cmd/Ctrl + K for command palette
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault()
-        setCommandPaletteOpen(true)
-      }
-      // Cmd/Ctrl + / for AI chat
-      if ((e.metaKey || e.ctrlKey) && e.key === '/') {
-        e.preventDefault()
-        setChatOpen(true)
-      }
-    }
-    
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
   
   const handleJumpToNow = () => {
     window.dispatchEvent(new CustomEvent('jumpToNow'))

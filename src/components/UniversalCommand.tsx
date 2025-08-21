@@ -18,33 +18,6 @@ export function UniversalCommand() {
   const [recentCommands, setRecentCommands] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   
-  // Keyboard shortcuts
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === '/' && !e.metaKey && !e.ctrlKey) {
-        e.preventDefault();
-        setOpen(true);
-      }
-      if (e.key === 'a' && !e.metaKey && !e.ctrlKey && !open) {
-        e.preventDefault();
-        createAgendaItem();
-      }
-      if (e.key === 'q' && !e.metaKey && !e.ctrlKey && !open) {
-        e.preventDefault();
-        createQuickAction();
-      }
-      if (e.key === 'n' && !e.metaKey && !e.ctrlKey && !open) {
-        e.preventDefault();
-        createNote();
-      }
-      if (e.key === 'Escape') {
-        setOpen(false);
-      }
-    };
-    
-    document.addEventListener('keydown', down);
-    return () => document.removeEventListener('keydown', down);
-  }, [open]);
   
   // Load recent commands and suggestions on open
   useEffect(() => {
