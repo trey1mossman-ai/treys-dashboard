@@ -1,0 +1,227 @@
+/* Enhanced Theme System with High Contrast */
+
+/* Dark Theme (Default) - Enhanced Contrast (WCAG AAA) */
+.theme-dark {
+  --background: hsl(225, 25%, 5%);
+  --foreground: hsl(0, 0%, 98%);
+  --card: hsl(225, 20%, 10%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --primary: hsl(190, 95%, 55%);
+  --accent: hsl(190, 100%, 55%);
+  --muted: hsl(217, 25%, 20%);
+  --muted-foreground: hsl(0, 0%, 80%);
+  --border: hsla(0, 0%, 100%, 0.15);
+  
+  /* High contrast text colors (WCAG AAA compliant) */
+  --text-primary: hsl(0, 0%, 98%);
+  --text-secondary: hsl(0, 0%, 85%);
+  --text-muted: hsl(0, 0%, 70%);
+  
+  /* Section colors with better contrast */
+  --color-agenda: hsl(190, 90%, 55%);
+  --color-todo: hsl(38, 92%, 55%);
+  --color-food: hsl(142, 71%, 50%);
+  --color-supplements: hsl(199, 89%, 53%);
+  
+  /* Additional color tokens */
+  --color-violet-600: hsl(263, 70%, 50%);
+  --color-amber-500: hsl(38, 92%, 55%);
+  --color-emerald-500: hsl(142, 71%, 50%);
+  --color-emerald-600: hsl(142, 71%, 45%);
+  --color-sky-500: hsl(199, 89%, 53%);
+  --color-sky-600: hsl(199, 89%, 48%);
+  
+  /* Enhanced shadows and glows */
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.6);
+  --glow-weak: 0 0 20px rgba(0, 212, 255, 0.35);
+  --glow-strong: 0 0 30px rgba(0, 212, 255, 0.5);
+  
+  /* Backgrounds */
+  --bg-gradient: linear-gradient(135deg, hsl(225, 20%, 6%) 0%, hsl(225, 20%, 9%) 100%);
+  
+  /* Core tokens */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --space-1: clamp(6px, 0.6vw, 10px);
+  --space-2: clamp(10px, 0.9vw, 16px);
+  --space-3: clamp(14px, 1.2vw, 20px);
+  --space-4: clamp(18px, 1.6vw, 28px);
+  --font-h1: clamp(22px, 4vw, 40px);
+  --font-h2: clamp(18px, 2.6vw, 28px);
+  --font-h3: clamp(16px, 2vw, 22px);
+  --font-body: clamp(14px, 1.4vw, 16px);
+  --font-small: clamp(12px, 1.2vw, 14px);
+  --font-mono: clamp(12px, 1.2vw, 14px);
+  --radius-small: 8px;
+  --radius-medium: 12px;
+  --radius-card: 16px;
+  --radius-button: 12px;
+  --nav-height: 60px;
+  --success-500: hsl(142, 71%, 50%);
+  --warn-500: hsl(38, 92%, 55%);
+  --accent-500: hsl(190, 100%, 50%);
+  --accent-400: hsl(190, 100%, 60%);
+  --accent-600: hsl(190, 100%, 40%);
+  --border-default: hsla(0, 0%, 100%, 0.1);
+  --color-text-primary: hsl(0, 0%, 96%);
+  --color-text-secondary: hsl(0, 0%, 80%);
+  --color-text-muted: hsl(0, 0%, 65%);
+  --color-bg: hsl(225, 20%, 6%);
+}
+
+/* Light Theme - Enhanced Contrast (WCAG AAA) */
+.theme-light {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(0, 0%, 5%);
+  --card: hsl(0, 0%, 99%);
+  --card-foreground: hsl(0, 0%, 5%);
+  --primary: hsl(190, 95%, 35%);
+  --accent: hsl(190, 100%, 33%);
+  --muted: hsl(0, 0%, 94%);
+  --muted-foreground: hsl(0, 0%, 25%);
+  --border: hsla(0, 0%, 0%, 0.12);
+  
+  /* High contrast text colors (WCAG AAA compliant) */
+  --text-primary: hsl(0, 0%, 5%);
+  --text-secondary: hsl(0, 0%, 20%);
+  --text-muted: hsl(0, 0%, 35%);
+  
+  /* Section colors adjusted for light mode */
+  --color-agenda: hsl(190, 90%, 38%);
+  --color-todo: hsl(38, 92%, 42%);
+  --color-food: hsl(142, 71%, 35%);
+  --color-supplements: hsl(199, 89%, 38%);
+  
+  /* Additional color tokens */
+  --color-violet-600: hsl(263, 70%, 45%);
+  --color-amber-500: hsl(38, 92%, 42%);
+  --color-emerald-500: hsl(142, 71%, 35%);
+  --color-emerald-600: hsl(142, 71%, 30%);
+  --color-sky-500: hsl(199, 89%, 38%);
+  --color-sky-600: hsl(199, 89%, 33%);
+  
+  /* Light mode shadows */
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --glow-weak: 0 0 12px rgba(0, 188, 212, 0.25);
+  --glow-strong: 0 0 20px rgba(0, 188, 212, 0.35);
+  
+  /* Backgrounds */
+  --bg-gradient: linear-gradient(135deg, hsl(0, 0%, 100%) 0%, hsl(0, 0%, 98%) 100%);
+  
+  /* Inherit core tokens */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --space-1: clamp(6px, 0.6vw, 10px);
+  --space-2: clamp(10px, 0.9vw, 16px);
+  --space-3: clamp(14px, 1.2vw, 20px);
+  --space-4: clamp(18px, 1.6vw, 28px);
+  --font-h1: clamp(22px, 4vw, 40px);
+  --font-h2: clamp(18px, 2.6vw, 28px);
+  --font-h3: clamp(16px, 2vw, 22px);
+  --font-body: clamp(14px, 1.4vw, 16px);
+  --font-small: clamp(12px, 1.2vw, 14px);
+  --font-mono: clamp(12px, 1.2vw, 14px);
+  --radius-small: 8px;
+  --radius-medium: 12px;
+  --radius-card: 16px;
+  --radius-button: 12px;
+  --nav-height: 60px;
+  --success-500: hsl(142, 71%, 35%);
+  --warn-500: hsl(38, 92%, 42%);
+  --accent-500: hsl(190, 100%, 38%);
+  --accent-400: hsl(190, 100%, 48%);
+  --accent-600: hsl(190, 100%, 28%);
+  --border-default: hsla(0, 0%, 0%, 0.08);
+  --color-text-primary: hsl(0, 0%, 10%);
+  --color-text-secondary: hsl(0, 0%, 25%);
+  --color-text-muted: hsl(0, 0%, 40%);
+  --color-bg: hsl(0, 0%, 100%);
+}
+
+/* Exciting Theme - Vibrant with Enhanced Contrast (WCAG AAA) */
+.theme-exciting {
+  --background: hsl(270, 35%, 6%);
+  --foreground: hsl(0, 0%, 99%);
+  --card: hsl(270, 28%, 11%);
+  --card-foreground: hsl(0, 0%, 99%);
+  --primary: hsl(280, 90%, 65%);
+  --accent: hsl(45, 98%, 60%);
+  --muted: hsl(270, 22%, 24%);
+  --muted-foreground: hsl(0, 0%, 82%);
+  --border: hsla(280, 85%, 60%, 0.25);
+  
+  /* High contrast text colors (WCAG AAA compliant) */
+  --text-primary: hsl(0, 0%, 99%);
+  --text-secondary: hsl(0, 0%, 88%);
+  --text-muted: hsl(0, 0%, 75%);
+  
+  /* Vibrant section colors */
+  --color-agenda: hsl(280, 85%, 65%);
+  --color-todo: hsl(45, 95%, 60%);
+  --color-food: hsl(120, 75%, 55%);
+  --color-supplements: hsl(200, 90%, 58%);
+  
+  /* Additional color tokens */
+  --color-violet-600: hsl(280, 85%, 60%);
+  --color-amber-500: hsl(45, 95%, 60%);
+  --color-emerald-500: hsl(120, 75%, 55%);
+  --color-emerald-600: hsl(120, 75%, 50%);
+  --color-sky-500: hsl(200, 90%, 58%);
+  --color-sky-600: hsl(200, 90%, 53%);
+  
+  /* Exciting theme glows */
+  --shadow-card: 0 4px 30px rgba(147, 51, 234, 0.3);
+  --glow-weak: 0 0 25px rgba(147, 51, 234, 0.4);
+  --glow-strong: 0 0 40px rgba(147, 51, 234, 0.6);
+  
+  /* Backgrounds */
+  --bg-gradient: linear-gradient(135deg, hsl(270, 30%, 8%) 0%, hsl(270, 30%, 12%) 100%);
+  
+  /* Inherit core tokens */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --space-1: clamp(6px, 0.6vw, 10px);
+  --space-2: clamp(10px, 0.9vw, 16px);
+  --space-3: clamp(14px, 1.2vw, 20px);
+  --space-4: clamp(18px, 1.6vw, 28px);
+  --font-h1: clamp(22px, 4vw, 40px);
+  --font-h2: clamp(18px, 2.6vw, 28px);
+  --font-h3: clamp(16px, 2vw, 22px);
+  --font-body: clamp(14px, 1.4vw, 16px);
+  --font-small: clamp(12px, 1.2vw, 14px);
+  --font-mono: clamp(12px, 1.2vw, 14px);
+  --radius-small: 8px;
+  --radius-medium: 12px;
+  --radius-card: 16px;
+  --radius-button: 12px;
+  --nav-height: 60px;
+  --success-500: hsl(120, 75%, 55%);
+  --warn-500: hsl(45, 95%, 60%);
+  --accent-500: hsl(45, 95%, 55%);
+  --accent-400: hsl(45, 95%, 65%);
+  --accent-600: hsl(45, 95%, 45%);
+  --border-default: hsla(280, 85%, 60%, 0.2);
+  --color-text-primary: hsl(0, 0%, 98%);
+  --color-text-secondary: hsl(0, 0%, 85%);
+  --color-text-muted: hsl(0, 0%, 70%);
+  --color-bg: hsl(270, 30%, 8%);
+}
+
+/* Apply text colors globally */
+.theme-dark *,
+.theme-light *,
+.theme-exciting * {
+  color: var(--text-primary);
+}
+
+.theme-dark .text-muted,
+.theme-light .text-muted,
+.theme-exciting .text-muted {
+  color: var(--text-muted) !important;
+}
+
+.theme-dark .text-secondary,
+.theme-light .text-secondary,
+.theme-exciting .text-secondary {
+  color: var(--text-secondary) !important;
+}

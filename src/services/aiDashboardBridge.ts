@@ -27,6 +27,7 @@ export interface DashboardCommand {
     source: 'voice' | 'text' | 'ui' | 'automation';
     sessionId?: string;
     userId?: string;
+    timestamp?: string;
   };
 }
 
@@ -308,17 +309,17 @@ GUIDELINES:
 
     for (const action of aiResponse.actions) {
       try {
-        const result = await dashboardController.executeCommand(action.tool || action.action, action.parameters || action.data);
+        const result = await dashboardController.executeCommand(action.action, action.data);
         results.push({
-          tool: action.tool || action.action,
-          parameters: action.parameters || action.data,
+          tool: action.action,
+          parameters: action.data,
           result,
           timestamp: new Date().toISOString()
         });
       } catch (error: any) {
         results.push({
-          tool: action.tool || action.action,
-          parameters: action.parameters || action.data,
+          tool: action.action,
+          parameters: action.data,
           error: error.message || error,
           timestamp: new Date().toISOString()
         });
@@ -332,7 +333,7 @@ GUIDELINES:
    * Generate comprehensive response from execution results
    */
   private async generateResponse(
-    command: DashboardCommand, 
+    _command: DashboardCommand, 
     aiResponse: AIResponse, 
     executionResults: any[]
   ): Promise<DashboardResponse> {
@@ -366,7 +367,7 @@ GUIDELINES:
   /**
    * Generate helpful suggestions for next actions
    */
-  private async generateSuggestions(command: DashboardCommand, response: DashboardResponse): Promise<string[]> {
+  private async generateSuggestions(_command: DashboardCommand, response: DashboardResponse): Promise<string[]> {
     const suggestions: string[] = [];
 
     // Basic suggestion logic based on executed actions
@@ -498,7 +499,9 @@ GUIDELINES:
     this.commandHistory.push({
       ...command,
       metadata: {
-        ...command.metadata,
+        source: command.metadata?.source || 'text',
+        sessionId: command.metadata?.sessionId,
+        userId: command.metadata?.userId,
         timestamp: new Date().toISOString()
       }
     });
@@ -516,7 +519,7 @@ GUIDELINES:
    */
   private setupEventListeners(): void {
     // Listen for direct AI commands
-    window.addEventListener('ai-dashboard-command', (event: CustomEvent) => {
+    window.addEventListener('ai-dashboard-command', ((event: CustomEvent) => {
       this.processCommand(event.detail).then(response => {
         if (response.success) {
           toast.success(response.message);
@@ -524,17 +527,17 @@ GUIDELINES:
           toast.error(response.message);
         }
       });
-    });
+    }) as EventListener);
 
     // Listen for tool execution requests
-    window.addEventListener('ai-execute-tool', (event: CustomEvent) => {
+    window.addEventListener('ai-execute-tool', ((event: CustomEvent) => {
       const { tool, parameters } = event.detail;
       this.executeTool(tool, parameters).then(result => {
         window.dispatchEvent(new CustomEvent('ai-tool-executed', { 
           detail: { tool, parameters, result } 
         }));
       });
-    });
+    }) as EventListener);
   }
 
   /**
@@ -555,7 +558,6 @@ GUIDELINES:
 export const aiDashboardBridge = AIDashboardBridge.getInstance();
 
 // Export types for external use
-export type { DashboardCommand, DashboardResponse, DashboardAIConfig };
 
 // Auto-initialize when imported
 aiDashboardBridge.initialize().catch(console.error);

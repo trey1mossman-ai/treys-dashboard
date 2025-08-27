@@ -31,3 +31,34 @@ tauri/src-tauri/WixTools/
 .env
 .env.local
 .env.production
+
+# Wrangler/Cloudflare
+.wrangler/
+.mf/
+
+# Database files
+*.sqlite-shm
+*.sqlite-wal
+
+# Backup directories
+.patches-backup/
+.css-backup-*/
+
+# Test and debug files
+test.html
+test-*.html
+mission-control-standalone.html
+validate-*.js
+fix-*.sh
+test-*.sh
+
+# Documentation overload (keep README.md)
+DEPLOY_NOTES.md
+FIXES_COMPLETE.md
+LIFEOS_ULTIMATE_GUIDE.md
+READABILITY_AUDIT_REPORT.md
+COMPLETE_FIX_SUMMARY.md
+
+# Temporary files
+*.tmp
+.temp/

@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Mail, MessageSquare, Zap } from 'lucide-react';
 import { AIAssistant } from '@/features/workflows/AIAssistant';
+import { AutomationBuilder } from '@/components/AutomationBuilder';
+import '../styles/responsive-system.css';
 
 export function Workflows() {
   const { toast } = useToast();
@@ -47,79 +49,160 @@ export function Workflows() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* AI Assistant */}
-        <Section title="AI Assistant" className="h-[600px]">
-          <AIAssistant />
-        </Section>
-        
-        {/* Message Composer */}
-        <Section title="Message Composer">
-          <Card className="p-6">
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="recipient">Recipient</Label>
-                <Input
-                  id="recipient"
-                  placeholder={sendMethod === 'email' ? 'email@example.com' : '+1234567890'}
-                  value={recipient}
-                  onChange={(e) => setRecipient(e.target.value)}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="message">Message</Label>
-                <Textarea
-                  id="message"
-                  placeholder="Type your message..."
-                  className="min-h-[200px]"
-                  value={composerText}
-                  onChange={(e) => setComposerText(e.target.value)}
-                />
-              </div>
-              
-              <div className="flex gap-2">
-                <Button 
-                  onClick={() => { setSendMethod('email'); sendMessage(); }} 
-                  className="flex-1 hover-glow"
-                >
-                  <Mail className="w-4 h-4 mr-2" />
-                  Send via Email
-                </Button>
-                <Button 
-                  onClick={() => { setSendMethod('sms'); sendMessage(); }} 
-                  variant="outline" 
-                  className="flex-1"
-                >
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Send via SMS
-                </Button>
-              </div>
-              
-              <div className="text-sm text-muted-foreground text-center">
-                Configure email/SMS providers in Settings to enable sending
+    <div style={{
+      fontFamily: 'Georgia, serif',
+      padding: 'clamp(1rem, 3vw, 2rem)',
+      maxWidth: '1600px',
+      margin: '0 auto',
+      background: 'var(--bg-gradient)',
+      minHeight: '100vh'
+    }}>
+      {/* Header */}
+      <div className="card-enhanced" style={{
+        padding: 'var(--space-4)',
+        marginBottom: 'var(--space-4)',
+        borderRadius: 'var(--radius-card)',
+        border: '2px solid var(--accent-500)'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 'var(--space-3)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+            <Zap className="w-8 h-8" style={{ color: 'var(--accent-500)' }} />
+            <div>
+              <h1 style={{
+                fontSize: 'var(--font-h1)',
+                fontWeight: 700,
+                color: 'var(--text-primary)',
+                margin: 0
+              }}>
+                Workflows & Automation
+              </h1>
+              <p style={{
+                fontSize: 'var(--font-body)',
+                color: 'var(--text-secondary)',
+                margin: '0.5rem 0 0 0'
+              }}>
+                Streamline your productivity with AI assistance and smart automations
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--space-2)',
+            flexWrap: 'wrap'
+          }}>
+            <button 
+              onClick={() => {
+                // Trigger the n8n Agent dock
+                const event = new KeyboardEvent('keydown', { key: 'c' });
+                window.dispatchEvent(event);
+              }}
+              className="button-high-contrast" 
+              style={{
+                padding: 'var(--space-2) var(--space-3)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-2)'
+              }}
+            >
+              <MessageSquare className="w-4 h-4" />
+              Open n8n Agent
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div style={{
+        marginBottom: 'var(--space-4)'
+      }}>
+        {/* AI Assistant - Full Width */}
+        <div className="card-enhanced" style={{
+          padding: 'var(--space-4)',
+          borderRadius: 'var(--radius-card)',
+          border: '1px solid var(--accent-500)',
+          minHeight: '600px',
+          marginBottom: 'var(--space-4)'
+        }}>
+          <h2 style={{
+            fontSize: 'var(--font-h2)',
+            fontWeight: 600,
+            color: 'var(--text-primary)',
+            marginBottom: 'var(--space-3)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--space-2)'
+          }}>
+            <Zap className="w-6 h-6" style={{ color: 'var(--accent-500)' }} />
+            AI Assistant (OpenAI Powered)
+          </h2>
+          <div style={{ 
+            height: 'calc(600px - var(--space-4) - var(--space-3))',
+            display: 'flex',
+            gap: 'var(--space-4)'
+          }}>
+            <div style={{ flex: 1 }}>
+              <AIAssistant />
+            </div>
+            <div style={{
+              width: '300px',
+              padding: 'var(--space-3)',
+              background: 'rgba(var(--accent-rgb), 0.05)',
+              borderRadius: 'var(--radius-medium)',
+              border: '1px solid var(--accent-500)'
+            }}>
+              <h3 style={{
+                fontSize: 'var(--font-h3)',
+                fontWeight: 600,
+                color: 'var(--text-primary)',
+                marginBottom: 'var(--space-2)'
+              }}>
+                n8n Agent Available
+              </h3>
+              <p style={{
+                fontSize: 'var(--font-small)',
+                color: 'var(--text-secondary)',
+                marginBottom: 'var(--space-3)'
+              }}>
+                Press <kbd style={{ 
+                  padding: '2px 6px',
+                  background: 'var(--accent-500)',
+                  borderRadius: '4px',
+                  color: 'white',
+                  fontWeight: 600
+                }}>C</kbd> anywhere to open your n8n Agent for calendar and email management.
+              </p>
+              <div style={{
+                fontSize: 'var(--font-small)',
+                color: 'var(--text-muted)'
+              }}>
+                <p style={{ marginBottom: 'var(--space-1)' }}>• Schedule meetings</p>
+                <p style={{ marginBottom: 'var(--space-1)' }}>• Send emails</p>
+                <p style={{ marginBottom: 'var(--space-1)' }}>• Check calendar</p>
+                <p>• Manage tasks</p>
               </div>
             </div>
-          </Card>
-        </Section>
-      </div>
-      
-      {/* Quick Actions Info */}
-      <Section title="Automations" className="mt-6">
-        <Card className="p-6">
-          <div className="text-center py-8">
-            <Zap className="w-12 h-12 mx-auto mb-4 text-primary opacity-50" />
-            <p className="font-medium mb-2">Quick Actions Available</p>
-            <p className="text-sm text-muted-foreground mb-4">
-              Create and manage webhook automations from the Dashboard
-            </p>
-            <Button onClick={() => window.location.href = '/'} className="hover-glow">
-              Go to Dashboard
-            </Button>
           </div>
-        </Card>
-      </Section>
+        </div>
+      </div>
+
+      {/* Automation Builder - Full Width */}
+      <div className="card-enhanced" style={{
+        padding: 0,
+        borderRadius: 'var(--radius-card)',
+        border: '2px solid var(--warn-500)',
+        overflow: 'hidden'
+      }}>
+        <AutomationBuilder />
+      </div>
     </div>
   );
 }

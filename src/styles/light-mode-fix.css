@@ -1,0 +1,195 @@
+/* Light Mode Complete Override - Everything Light/White */
+.theme-light,
+:root:has(.theme-light) {
+  /* Core backgrounds - all white/light */
+  --background: 0 0% 98% !important;
+  --foreground: 220 20% 10% !important;
+  
+  --card: 0 0% 100% !important;
+  --card-foreground: 220 20% 10% !important;
+  
+  --popover: 0 0% 100% !important;
+  --popover-foreground: 220 20% 10% !important;
+  
+  --primary: 190 80% 40% !important;
+  --primary-foreground: 0 0% 100% !important;
+  
+  --secondary: 0 0% 96% !important;
+  --secondary-foreground: 220 20% 10% !important;
+  
+  --muted: 210 20% 98% !important;
+  --muted-foreground: 215 20% 35% !important;
+  
+  --accent: 190 80% 40% !important;
+  --accent-foreground: 0 0% 100% !important;
+  
+  --destructive: 0 84% 50% !important;
+  --destructive-foreground: 0 0% 100% !important;
+  
+  --border: 210 16% 85% !important;
+  --input: 0 0% 100% !important;
+  --ring: 190 80% 40% !important;
+  
+  /* Custom properties for light mode */
+  --glow-cyan: 190 80% 40% !important;
+  --glow-amber: 38 92% 45% !important;
+  --glow-intensity: 0.15 !important;
+  
+  /* Section colors - lighter for light mode */
+  --color-agenda: 190 80% 40% !important;
+  --color-todo: 38 92% 45% !important;
+  --color-food: 142 71% 40% !important;
+  --color-supplements: 199 89% 42% !important;
+  
+  /* Border and shadows for light mode */
+  --border-color: rgba(0, 0, 0, 0.08) !important;
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+  --glow-weak: 0 0 8px rgba(0, 150, 200, 0.2) !important;
+  --glow-strong: 0 0 16px rgba(0, 150, 200, 0.3) !important;
+  
+  /* Background gradient override */
+  --bg-gradient: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+}
+
+/* Force light backgrounds on all major components */
+.theme-light body {
+  background: #ffffff !important;
+  background-image: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+  color: #1a1a1a !important;
+}
+
+.theme-light .bg-background {
+  background-color: #ffffff !important;
+}
+
+.theme-light .bg-card,
+.theme-light .card-base,
+.theme-light [class*="card"] {
+  background-color: #ffffff !important;
+  border-color: #e5e5e5 !important;
+}
+
+.theme-light .bg-secondary {
+  background-color: #f5f5f5 !important;
+}
+
+.theme-light .bg-muted {
+  background-color: #fafafa !important;
+}
+
+/* Headers and navigation in light mode */
+.theme-light header,
+.theme-light nav,
+.theme-light .header,
+.theme-light .navigation {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+  border-bottom: 1px solid #e5e5e5 !important;
+}
+
+/* Buttons in light mode */
+.theme-light button {
+  color: #1a1a1a !important;
+}
+
+.theme-light button[class*="ghost"] {
+  background: transparent !important;
+}
+
+.theme-light button[class*="ghost"]:hover {
+  background: #f5f5f5 !important;
+}
+
+.theme-light button[class*="default"],
+.theme-light button.button-primary {
+  background: #00bcd4 !important;
+  color: #ffffff !important;
+}
+
+/* Input fields in light mode */
+.theme-light input,
+.theme-light textarea,
+.theme-light select {
+  background: #ffffff !important;
+  border-color: #e5e5e5 !important;
+  color: #1a1a1a !important;
+}
+
+.theme-light input::placeholder,
+.theme-light textarea::placeholder {
+  color: #888888 !important;
+}
+
+/* Modals and dialogs in light mode */
+.theme-light [role="dialog"],
+.theme-light .modal,
+.theme-light .dialog {
+  background: #ffffff !important;
+  color: #1a1a1a !important;
+}
+
+/* Dropdowns and menus in light mode */
+.theme-light [role="menu"],
+.theme-light .dropdown,
+.theme-light .menu {
+  background: #ffffff !important;
+  border-color: #e5e5e5 !important;
+}
+
+/* Table and lists in light mode */
+.theme-light table {
+  background: #ffffff !important;
+}
+
+.theme-light tr:hover {
+  background: #f5f5f5 !important;
+}
+
+.theme-light th {
+  background: #fafafa !important;
+  color: #1a1a1a !important;
+}
+
+/* Scrollbars in light mode */
+.theme-light ::-webkit-scrollbar {
+  background: #f5f5f5 !important;
+}
+
+.theme-light ::-webkit-scrollbar-thumb {
+  background: #cccccc !important;
+}
+
+.theme-light ::-webkit-scrollbar-thumb:hover {
+  background: #aaaaaa !important;
+}
+
+/* Text colors in light mode */
+.theme-light .text-foreground {
+  color: #1a1a1a !important;
+}
+
+.theme-light .text-muted-foreground {
+  color: #666666 !important;
+}
+
+.theme-light .text-primary {
+  color: #00bcd4 !important;
+}
+
+/* Ensure all containers are light */
+.theme-light div[class*="bg-"],
+.theme-light section[class*="bg-"],
+.theme-light article[class*="bg-"],
+.theme-light aside[class*="bg-"],
+.theme-light main[class*="bg-"] {
+  background-color: #ffffff !important;
+}
+
+/* Override any dark backgrounds */
+.theme-light [style*="background-color: rgb(15"],
+.theme-light [style*="background-color: #0"],
+.theme-light [style*="background-color: #1"],
+.theme-light [style*="background-color: #2"],
+.theme-light [style*="background-color: #3"] {
+  background-color: #ffffff !important;
+}

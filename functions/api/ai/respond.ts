@@ -4,6 +4,7 @@ import { corsHeaders, handleOptions } from '../../_utils/cors';
 export interface Env {
   PROVIDER: string;
   OPENAI_API_KEY: string;
+  OPENAI_API_KEY_NEW: string;
   OPENAI_BASE_URL: string;
   OPENAI_MODEL: string;
   ANTHROPIC_API_KEY: string;
@@ -44,7 +45,7 @@ async function streamOpenAI(
   const response = await fetch(`${env.OPENAI_BASE_URL}/chat/completions`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${env.OPENAI_API_KEY}`,
+      'Authorization': `Bearer ${env.OPENAI_API_KEY_NEW || env.OPENAI_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -371,6 +372,14 @@ export async function onRequestPost(context: {
   try {
     const body: ChatRequest = await request.json();
     const provider = body.provider || env.PROVIDER || 'openai';
+    
+    console.log('AI Proxy received request:', {
+      provider,
+      messageCount: body.messages?.length,
+      hasSystem: !!body.system,
+      stream: body.stream,
+      enableTools: body.enable_tools
+    });
 
     // Rate limiting check (simple implementation)
     const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown';
@@ -417,10 +426,22 @@ export async function onRequestPost(context: {
       const data = await response.json();
       return json(data);
     } else {
+      // Check if API key is configured
+      const apiKey = env.OPENAI_API_KEY_NEW || env.OPENAI_API_KEY;
+      if (!apiKey) {
+        console.error('OpenAI API key not configured');
+        return json({ 
+          error: 'OpenAI API key not configured',
+          message: 'Please set OPENAI_API_KEY_NEW in environment variables'
+        }, 500);
+      }
+      
+      console.log('Making OpenAI request with model:', env.OPENAI_MODEL || 'gpt-4o');
+      
       const response = await fetch(`${env.OPENAI_BASE_URL}/chat/completions`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${env.OPENAI_API_KEY}`,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -433,12 +454,25 @@ export async function onRequestPost(context: {
         }),
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('OpenAI API error:', response.status, errorText);
+        return json({ 
+          error: `OpenAI API error: ${response.status}`,
+          details: errorText 
+        }, response.status);
+      }
+
       const data = await response.json();
+      console.log('OpenAI response received successfully');
       return json(data);
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('AI Proxy error:', error);
-    return json({ error: 'Internal server error' }, 500);
+    return json({ 
+      error: 'Internal server error',
+      message: error.message || 'Unknown error occurred'
+    }, 500);
   }
 }
 

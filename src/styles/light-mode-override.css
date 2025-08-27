@@ -1,0 +1,230 @@
+/* FORCE LIGHT MODE - WHITE EVERYTHING */
+
+/* Root level overrides */
+.theme-light {
+  --background: 255, 255, 255 !important;
+  --foreground: 0, 0, 0 !important;
+  --card: 255, 255, 255 !important;
+  --card-foreground: 0, 0, 0 !important;
+  --popover: 255, 255, 255 !important;
+  --popover-foreground: 0, 0, 0 !important;
+  --primary: 0, 188, 212 !important;
+  --primary-foreground: 255, 255, 255 !important;
+  --secondary: 245, 245, 245 !important;
+  --secondary-foreground: 0, 0, 0 !important;
+  --muted: 250, 250, 250 !important;
+  --muted-foreground: 100, 100, 100 !important;
+  --accent: 0, 188, 212 !important;
+  --accent-foreground: 255, 255, 255 !important;
+  --border: 230, 230, 230 !important;
+  --input: 255, 255, 255 !important;
+  --ring: 0, 188, 212 !important;
+}
+
+/* Force white background on EVERYTHING */
+.theme-light,
+.theme-light body,
+.theme-light #root,
+.theme-light main,
+.theme-light div,
+.theme-light section,
+.theme-light article,
+.theme-light aside,
+.theme-light header,
+.theme-light nav,
+.theme-light footer {
+  background: white !important;
+  background-color: white !important;
+  background-image: none !important;
+  color: black !important;
+}
+
+/* Override all Tailwind background classes */
+.theme-light .bg-background,
+.theme-light .bg-card,
+.theme-light .bg-popover,
+.theme-light .bg-primary,
+.theme-light .bg-secondary,
+.theme-light .bg-muted,
+.theme-light .bg-accent,
+.theme-light .bg-destructive,
+.theme-light [class*="bg-slate"],
+.theme-light [class*="bg-gray"],
+.theme-light [class*="bg-zinc"],
+.theme-light [class*="bg-neutral"],
+.theme-light [class*="bg-stone"] {
+  background: white !important;
+  background-color: white !important;
+}
+
+/* Cards and containers */
+.theme-light .card,
+.theme-light .card-base,
+.theme-light [class*="card"],
+.theme-light .container,
+.theme-light .wrapper,
+.theme-light .panel,
+.theme-light .box {
+  background: white !important;
+  background-color: white !important;
+  border: 1px solid #e5e5e5 !important;
+}
+
+/* Text must be black and readable */
+.theme-light,
+.theme-light * {
+  color: black !important;
+}
+
+.theme-light h1,
+.theme-light h2,
+.theme-light h3,
+.theme-light h4,
+.theme-light h5,
+.theme-light h6,
+.theme-light p,
+.theme-light span,
+.theme-light div,
+.theme-light a,
+.theme-light li,
+.theme-light td,
+.theme-light th {
+  color: black !important;
+}
+
+/* Muted text slightly gray but readable */
+.theme-light .text-muted-foreground,
+.theme-light .text-muted,
+.theme-light [class*="text-gray"],
+.theme-light [class*="text-slate"] {
+  color: #555555 !important;
+}
+
+/* Primary colored text */
+.theme-light .text-primary {
+  color: #00acc1 !important;
+}
+
+/* Buttons */
+.theme-light button {
+  background: white !important;
+  color: black !important;
+  border: 1px solid #d0d0d0 !important;
+}
+
+.theme-light button:hover {
+  background: #f0f0f0 !important;
+  border: 1px solid #00acc1 !important;
+}
+
+.theme-light button.button-primary,
+.theme-light button[class*="primary"] {
+  background: #00bcd4 !important;
+  color: white !important;
+}
+
+.theme-light button.button-primary:hover,
+.theme-light button[class*="primary"]:hover {
+  background: #00acc1 !important;
+}
+
+/* Input fields */
+.theme-light input,
+.theme-light textarea,
+.theme-light select {
+  background: white !important;
+  background-color: white !important;
+  color: black !important;
+  border: 1px solid #d0d0d0 !important;
+}
+
+.theme-light input::placeholder,
+.theme-light textarea::placeholder {
+  color: #888888 !important;
+}
+
+/* Dropdowns and modals */
+.theme-light [role="dialog"],
+.theme-light [role="menu"],
+.theme-light .modal,
+.theme-light .dialog,
+.theme-light .dropdown,
+.theme-light .popover {
+  background: white !important;
+  background-color: white !important;
+  color: black !important;
+}
+
+/* Tables */
+.theme-light table,
+.theme-light thead,
+.theme-light tbody,
+.theme-light tr,
+.theme-light td,
+.theme-light th {
+  background: white !important;
+  color: black !important;
+}
+
+.theme-light tr:nth-child(even) {
+  background: #fafafa !important;
+}
+
+.theme-light th {
+  background: #f5f5f5 !important;
+  font-weight: bold !important;
+}
+
+/* Override any inline styles */
+.theme-light [style*="background"] {
+  background: white !important;
+  background-color: white !important;
+}
+
+.theme-light [style*="color"] {
+  color: black !important;
+}
+
+/* Remove all gradients and images */
+.theme-light [class*="gradient"],
+.theme-light .gradient,
+.theme-light .bg-gradient {
+  background: white !important;
+  background-image: none !important;
+}
+
+/* Scrollbars */
+.theme-light ::-webkit-scrollbar {
+  background: #f5f5f5 !important;
+}
+
+.theme-light ::-webkit-scrollbar-thumb {
+  background: #cccccc !important;
+}
+
+/* Override CSS variables in style attributes */
+.theme-light [style*="--tw-bg-opacity"],
+.theme-light [style*="background: rgb"],
+.theme-light [style*="background: hsl"],
+.theme-light [style*="background: var"] {
+  background: white !important;
+}
+
+/* Nuclear option - override EVERYTHING with white */
+.theme-light *:not(button):not(a) {
+  background-color: white !important;
+  background-image: none !important;
+}
+
+.theme-light *:not(button):not(input):not(textarea) {
+  color: black !important;
+}
+
+/* Fix specific components that might have hardcoded dark backgrounds */
+.theme-light .dark,
+.theme-light [class*="dark"],
+.theme-light .night,
+.theme-light [class*="night"] {
+  background: white !important;
+  color: black !important;
+}

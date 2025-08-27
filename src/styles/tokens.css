@@ -1,0 +1,156 @@
+/* Design Tokens V2 - No Purple, High Visibility, Cyan/Teal Accent */
+
+:root {
+  /* ===== COLOR PALETTE ===== */
+  
+  /* Background - Darker for Better Contrast */
+  --bg-0: #050810; /* Darker near-black */
+  --bg-1: #0a1628; /* Darker navy */
+  --bg-gradient: linear-gradient(135deg, #050810 0%, #0a1628 100%);
+  
+  /* Panel Colors */
+  --panel-bg: rgba(14, 18, 23, 0.94); /* #0E1217 with opacity */
+  --panel-bg-alt: rgba(17, 24, 39, 0.92); /* #111827 with opacity */
+  
+  /* Accent - Production Cyan/Teal */
+  --accent-50: #f0fdfd;
+  --accent-200: #ccfbf1;
+  --accent-300: #99f6e4;
+  --accent-400: #5eead4;
+  --accent-500: #37E6E3; /* Primary cyan */
+  --accent-600: #0AA0A0; /* Darker cyan */
+  --accent-700: #0d9488;
+  --accent-800: #0f766e;
+  
+  /* Semantic Colors */
+  --warn-500: #f59e0b; /* Amber */
+  --warn-700: #d97706;
+  --success-500: #10b981; /* Emerald */
+  --success-700: #047857;
+  --error-500: #ef4444;
+  --error-700: #dc2626;
+  
+  /* Borders & Surfaces */
+  --border-default: rgba(255, 255, 255, 0.15);
+  --border-focus: var(--accent-400);
+  --border-active: var(--accent-500);
+  --border-color: rgba(255, 255, 255, 0.15);
+  
+  /* Text Colors - Maximum Contrast for Better Visibility */
+  --text-primary: #ffffff;
+  --text-secondary: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-accent: #93c5fd;
+  
+  /* ===== TYPOGRAPHY (Georgia, Polished Sizing) ===== */
+  --font-family: Georgia, 'Times New Roman', serif;
+  --font-h1: clamp(22px, 4vw, 36px);     /* Reduced ~15% from previous */
+  --font-h2: clamp(18px, 2.6vw, 24px);   /* Reduced ~15% from previous */
+  --font-h3: clamp(16px, 2vw, 20px);     /* Reduced slightly */
+  --font-body: clamp(14px, 1.5vw, 16px); /* Consistent body text */
+  --font-small: clamp(13px, 1.3vw, 14px);
+  --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  
+  /* Tabular numerals for data display */
+  --font-tabular: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  
+  /* Font Weights */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  
+  /* ===== SPACING ===== */
+  --space-1: clamp(4px, 0.4vw, 8px);
+  --space-2: clamp(8px, 0.7vw, 12px);
+  --space-3: clamp(12px, 1vw, 16px);
+  --space-4: clamp(16px, 1.2vw, 20px);
+  --space-5: clamp(20px, 1.6vw, 28px);
+  --space-6: clamp(24px, 2vw, 36px);
+  
+  /* Component spacing */
+  --padding-pill: clamp(8px, 0.8vw, 12px) clamp(16px, 1.6vw, 24px);
+  --padding-button: clamp(8px, 0.8vw, 12px) clamp(16px, 1.6vw, 20px); /* Reduced height ~15% */
+  --padding-card: clamp(14px, 1.2vw, 20px);
+  --padding-nav-button: clamp(6px, 0.6vw, 10px) clamp(12px, 1.2vw, 16px); /* Reduced ~10-15% */
+  
+  /* Progress bars - thin as specified */
+  --progress-thickness: 4px; /* Thin progress bars */
+  
+  /* ===== RADII ===== */
+  --radius-small: 8px;
+  --radius-medium: 12px;
+  --radius-button: 14px;
+  --radius-card: 18px;
+  --radius-modal: 24px;
+  
+  /* ===== SHADOWS & GLOWS ===== */
+  --shadow-card: 0 2px 18px rgba(0, 0, 0, 0.45);
+  --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.55);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.75);
+  
+  /* Glow Effects - Cyan/Teal Primary (Reduced Intensity) */
+  --glow-weak: 0 0 8px rgba(55, 230, 227, 0.2);  /* --accent-500 with low opacity */
+  --glow-strong: 0 0 16px rgba(55, 230, 227, 0.3);
+  --glow-intense: 0 0 24px rgba(55, 230, 227, 0.4);
+  
+  /* Interactive glow colors */
+  --glow-cyan: rgba(55, 230, 227, 0.25);
+  --glow-success: rgba(16, 185, 129, 0.25);
+  --glow-warn: rgba(245, 158, 11, 0.25);
+  
+  /* ===== TRANSITIONS ===== */
+  --transition-fast: 120ms ease-out;
+  --transition-normal: 180ms ease-out;
+  --transition-slow: 280ms ease-out;
+  --transition-sweep: 220ms ease-out;
+  
+  /* ===== Z-INDEX LAYERS ===== */
+  --z-background: -1;
+  --z-base: 0;
+  --z-elevated: 10;
+  --z-overlay: 100;
+  --z-modal: 1000;
+  --z-dock: 999;
+  --z-command: 1001;
+  --z-top: 9999;
+  
+  /* ===== LAYOUT ===== */
+  --grid-gap: clamp(12px, 2vw, 24px);
+  --container-max: 1920px;
+  --sidebar-width: clamp(420px, 30vw, 520px);
+}
+
+/* Remove ALL purple/violet references */
+.dark {
+  --primary: var(--accent-500);
+  --primary-foreground: #ffffff;
+  --accent: var(--accent-400);
+  --background: var(--bg-0);
+  --foreground: var(--text-primary);
+  --card: var(--panel-bg);
+  --card-foreground: var(--text-primary);
+  --muted: var(--text-muted);
+  --muted-foreground: var(--text-secondary);
+  --border: var(--border-default);
+  --ring: var(--accent-400);
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  :root {
+    --text-primary: #ffffff;
+    --text-secondary: #e2e8f0;
+    --border-default: rgba(255, 255, 255, 0.20);
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0.01ms;
+    --transition-normal: 0.01ms;
+    --transition-slow: 0.01ms;
+    --transition-sweep: 0.01ms;
+  }
+}

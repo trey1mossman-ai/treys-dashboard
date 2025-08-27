@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Schedule</title>
+</head>
+<body>
+    <h1>Debug Schedule Items</h1>
+    <button onclick="checkSchedule()">Check Schedule</button>
+    <button onclick="addTestItem()">Add Test Item for Today</button>
+    <button onclick="clearSchedule()">Clear Schedule</button>
+    <pre id="output"></pre>
+
+    <script>
+    function isToday(dateString) {
+        if (!dateString) return false;
+        try {
+            const date = new Date(dateString);
+            const today = new Date();
+            // Set time to midnight for comparison
+            today.setHours(0, 0, 0, 0);
+            const compareDate = new Date(date);
+            compareDate.setHours(0, 0, 0, 0);
+            
+            console.log('Comparing:', {
+                input: dateString,
+                date: date.toISOString(),
+                compareDate: compareDate.toISOString(),
+                today: today.toISOString(),
+                matches: compareDate.getTime() === today.getTime()
+            });
+            
+            return compareDate.getTime() === today.getTime();
+        } catch {
+            return false;
+        }
+    }
+
+    function checkSchedule() {
+        const saved = localStorage.getItem('dashboard_schedule');
+        const output = document.getElementById('output');
+        
+        if (!saved) {
+            output.textContent = 'No schedule items in localStorage';
+            return;
+        }
+        
+        try {
+            const items = JSON.parse(saved);
+            const today = new Date();
+            
+            output.textContent = `Found ${items.length} schedule items:\n\n`;
+            
+            items.forEach(item => {
+                const itemDate = new Date(item.startTime);
+                const todayCheck = isToday(item.startTime);
+                
+                output.textContent += `Title: ${item.title}\n`;
+                output.textContent += `Start: ${item.startTime}\n`;
+                output.textContent += `Date: ${itemDate.toLocaleString()}\n`;
+                output.textContent += `Is Today? ${todayCheck}\n`;
+                output.textContent += `Type: ${item.type}\n`;
+                output.textContent += `---\n`;
+            });
+            
+            const todayItems = items.filter(item => isToday(item.startTime));
+            output.textContent += `\nToday's items: ${todayItems.length}`;
+            
+        } catch (e) {
+            output.textContent = 'Error parsing schedule: ' + e;
+        }
+    }
+    
+    function addTestItem() {
+        // Create a test item for today at 2pm
+        const now = new Date();
+        const startTime = new Date();
+        startTime.setHours(14, 0, 0, 0);
+        const endTime = new Date();
+        endTime.setHours(15, 0, 0, 0);
+        
+        const testItem = {
+            id: 'test-' + Date.now(),
+            title: 'Test Meeting Today',
+            startTime: startTime.toISOString(),
+            endTime: endTime.toISOString(),
+            type: 'schedule',
+            description: 'Test schedule item for today',
+            location: null,
+            status: 'upcoming'
+        };
+        
+        // Get existing schedule or create new array
+        let schedule = [];
+        try {
+            const saved = localStorage.getItem('dashboard_schedule');
+            if (saved) {
+                schedule = JSON.parse(saved);
+            }
+        } catch (e) {
+            console.error('Failed to parse schedule');
+        }
+        
+        // Add test item
+        schedule.push(testItem);
+        localStorage.setItem('dashboard_schedule', JSON.stringify(schedule));
+        
+        // Dispatch update event
+        window.dispatchEvent(new Event('scheduleUpdated'));
+        
+        const output = document.getElementById('output');
+        output.textContent = `Added test item:\n${JSON.stringify(testItem, null, 2)}\n\nTotal items: ${schedule.length}`;
+    }
+    
+    function clearSchedule() {
+        localStorage.removeItem('dashboard_schedule');
+        const output = document.getElementById('output');
+        output.textContent = 'Schedule cleared';
+    }
+    </script>
+</body>
+</html>

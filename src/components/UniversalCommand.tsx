@@ -328,18 +328,18 @@ Natural Language:
   if (!open) return null;
   
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-[20vh]">
-      <Command className="bg-background border rounded-lg shadow-lg w-full max-w-2xl mx-4">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-4 md:pt-[20vh] p-4">
+      <Command className="bg-background border rounded-lg shadow-lg w-full max-w-[95vw] md:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         <Command.Input
           placeholder={isProcessing ? "Processing..." : "Type a command or describe what you want..."}
           value={query}
           onValueChange={setQuery}
           disabled={isProcessing}
-          className="px-4 py-3 text-lg border-0 outline-none bg-transparent"
+          className="px-4 py-4 md:py-3 text-lg border-0 outline-none bg-transparent min-h-[56px] md:min-h-auto"
           autoFocus
         />
-        <Command.List className="max-h-96 overflow-y-auto p-2">
-          <Command.Empty className="px-4 py-6 text-center text-muted-foreground">
+        <Command.List className="max-h-[60vh] md:max-h-96 overflow-y-auto p-2 flex-1">
+          <Command.Empty className="px-4 py-8 md:py-6 text-center text-muted-foreground">
             {isProcessing ? (
               <div className="flex items-center justify-center gap-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
@@ -360,11 +360,11 @@ Natural Language:
                 <Command.Item 
                   key={suggestion.id}
                   onSelect={() => suggestion.action()}
-                  className="px-4 py-2 rounded hover:bg-muted cursor-pointer flex items-center gap-2"
+                  className="px-4 py-3 md:py-2 rounded hover:bg-muted active:bg-muted cursor-pointer flex items-center gap-2 min-h-[48px] md:min-h-auto"
                 >
-                  {suggestion.text}
+                  <span className="text-base md:text-sm">{suggestion.text}</span>
                   {suggestion.confidence && (
-                    <span className="text-xs text-muted-foreground ml-auto">
+                    <span className="text-sm md:text-xs text-muted-foreground ml-auto">
                       {Math.round(suggestion.confidence * 100)}%
                     </span>
                   )}

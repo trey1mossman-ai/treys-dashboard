@@ -9,7 +9,7 @@
   --popover: 225 18% 9%;
   --popover-foreground: 210 40% 98%;
   
-  --primary: 255 90% 70%;        /* Violet per spec */
+  --primary: 190 90% 50%;        /* Cyan - no purple */
   --primary-foreground: 0 0% 100%;
   
   --secondary: 220 30% 12%;
@@ -18,7 +18,7 @@
   --muted: 217 30% 18%;
   --muted-foreground: 215 20% 65%;
   
-  --accent: 190 100% 50%;        /* Cyan per spec */
+  --accent: 190 100% 50%;        /* Cyan primary */
   --accent-foreground: 0 0% 100%;
   
   --destructive: 0 84% 60%;
@@ -26,44 +26,74 @@
   
   --border: 217 30% 15%;
   --input: 217 30% 15%;
-  --ring: 255 90% 70%;
+  --ring: 190 90% 50%;
   
   --radius: 1rem;
   
-  /* Custom properties - Updated per spec */
-  --glow-violet: 255 90% 70%;
+  /* Custom properties - Cyan only, no purple */
   --glow-cyan: 190 100% 50%;
+  --glow-amber: 38 92% 50%;
   --glow-intensity: 0.3;        /* Reduced for glow discipline */
   
   /* Section colors */
-  --color-agenda: 255 90% 70%;     /* Violet */
+  --color-agenda: 190 90% 50%;     /* Cyan */
   --color-todo: 38 92% 50%;        /* Amber */
   --color-food: 142 71% 45%;       /* Emerald */
   --color-supplements: 199 89% 48%; /* Sky */
   
-  /* Typography scale */
-  --font-h1: 2rem;      /* 32px */
-  --font-h2: 1.5rem;    /* 24px */
-  --font-h3: 1.25rem;   /* 20px */
-  --font-body: 0.9375rem; /* 15px */
-  --font-small: 0.875rem; /* 14px */
-  --font-mono: 0.875rem;  /* 14px */
+  /* Typography scale - Fluid sizes */
+  --font-h1: clamp(22px, 4vw, 40px);
+  --font-h2: clamp(18px, 2.6vw, 28px);
+  --font-h3: clamp(16px, 2vw, 22px);
+  --font-body: clamp(14px, 1.4vw, 16px);
+  --font-small: clamp(12px, 1.2vw, 14px);
+  --font-mono: clamp(12px, 1.2vw, 14px);
+  
+  /* Spacing tokens */
+  --space-1: clamp(6px, 0.6vw, 10px);
+  --space-2: clamp(10px, 0.9vw, 16px);
+  --space-3: clamp(14px, 1.2vw, 20px);
+  --space-4: clamp(18px, 1.6vw, 28px);
+  
+  /* Border and shadows */
+  --border-color: rgba(255, 255, 255, 0.08);
+  --shadow-card: 0 2px 18px rgba(0, 0, 0, 0.45);
+  --glow-weak: 0 0 12px rgba(0, 212, 255, 0.25);
+  --glow-strong: 0 0 22px rgba(0, 212, 255, 0.35);
 }
 
 .dark {
   color-scheme: dark;
 }
 
-/* Light mode (optional) */
-@media (prefers-color-scheme: light) {
-  .light {
-    --background: 0 0% 100%;
-    --foreground: 220 40% 3%;
-    --card: 0 0% 100%;
-    --card-foreground: 220 40% 3%;
-    --primary: 263 70% 50%;
-    --accent: 188 80% 40%;
-    --border: 210 16% 90%;
-    --glow-intensity: 0.2;
-  }
+/* Light mode - properly override everything */
+.theme-light {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 0%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 0%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 0%;
+  --primary: 190 90% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 0 0% 0%;
+  --muted: 0 0% 98%;
+  --muted-foreground: 0 0% 40%;
+  --accent: 190 90% 50%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 90%;
+  --input: 0 0% 90%;
+  --ring: 190 90% 50%;
+  --glow-intensity: 0.2;
+  
+  /* Override gradient */
+  --bg-gradient: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  
+  /* Override shadows for light mode */
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --glow-weak: 0 0 8px rgba(0, 188, 212, 0.2);
+  --glow-strong: 0 0 16px rgba(0, 188, 212, 0.3);
 }

@@ -365,26 +365,26 @@ export function AICommandPalette({
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <Command className="rounded-lg border shadow-md">
+      <Command className="rounded-lg border shadow-md mx-4 md:mx-0 max-h-[90vh] md:max-h-none overflow-hidden">
         <CommandInput 
           placeholder="Type a command or describe what you want to do..." 
           value={search}
           onValueChange={setSearch}
           onKeyDown={handleKeyDown}
-          className="h-12"
+          className="h-14 md:h-12 text-base px-4"
         />
         
-        <CommandList>
+        <CommandList className="max-h-[70vh] md:max-h-[400px] overflow-y-auto">
           {isProcessing ? (
-            <div className="flex items-center justify-center py-6">
+            <div className="flex items-center justify-center py-8">
               <Loader2 className="w-6 h-6 animate-spin text-gray-500" />
-              <span className="ml-2 text-sm text-gray-500">Processing...</span>
+              <span className="ml-2 text-base md:text-sm text-gray-500">Processing...</span>
             </div>
           ) : filteredCommands.length === 0 && search ? (
             <CommandEmpty>
-              <div className="text-center py-6">
-                <p className="text-sm text-gray-500">No commands found</p>
-                <p className="text-xs text-gray-400 mt-2">
+              <div className="text-center py-8 px-4">
+                <p className="text-base md:text-sm text-gray-500">No commands found</p>
+                <p className="text-sm md:text-xs text-gray-400 mt-2">
                   Press Enter to use AI to interpret "{search}"
                 </p>
               </div>
@@ -400,12 +400,12 @@ export function AICommandPalette({
                     <CommandItem
                       key={cmd.id}
                       onSelect={() => handleSelect(cmd)}
-                      className="flex items-center gap-3 px-4 py-3 cursor-pointer"
+                      className="flex items-center gap-3 px-4 py-4 md:py-3 cursor-pointer min-h-[60px] md:min-h-auto active:bg-gray-100 dark:active:bg-gray-800"
                     >
-                      <cmd.icon className="w-5 h-5 text-gray-500" />
+                      <cmd.icon className="w-6 h-6 md:w-5 md:h-5 text-gray-500" />
                       <div className="flex-1">
-                        <div className="font-medium text-sm">{cmd.title}</div>
-                        <div className="text-xs text-gray-500">{cmd.description}</div>
+                        <div className="font-medium text-base md:text-sm">{cmd.title}</div>
+                        <div className="text-sm md:text-xs text-gray-500">{cmd.description}</div>
                       </div>
                     </CommandItem>
                   ))}
@@ -420,12 +420,12 @@ export function AICommandPalette({
               <CommandGroup heading="AI Suggestions">
                 <CommandItem
                   onSelect={() => processNaturalLanguage(search)}
-                  className="flex items-center gap-3 px-4 py-3 cursor-pointer"
+                  className="flex items-center gap-3 px-4 py-4 md:py-3 cursor-pointer min-h-[60px] md:min-h-auto active:bg-blue-50 dark:active:bg-blue-900/20"
                 >
-                  <Sparkles className="w-5 h-5 text-blue-500" />
+                  <Sparkles className="w-6 h-6 md:w-5 md:h-5 text-blue-500" />
                   <div className="flex-1">
-                    <div className="font-medium text-sm">Use AI to interpret</div>
-                    <div className="text-xs text-gray-500">"{search}"</div>
+                    <div className="font-medium text-base md:text-sm">Use AI to interpret</div>
+                    <div className="text-sm md:text-xs text-gray-500">"{search}"</div>
                   </div>
                 </CommandItem>
               </CommandGroup>

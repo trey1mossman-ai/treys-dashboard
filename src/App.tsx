@@ -1,122 +1,44 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Header } from '@/components/Header'
-import { InstallPWA } from '@/components/InstallPWA'
-import { AssistantDock } from '@/features/assistant/AssistantDock'
-import { UniversalCommand } from '@/components/UniversalCommand'
-import { ProactiveAssistant } from '@/components/ProactiveAssistant'
-import { ChatInterface } from '@/components/ChatInterface'
-import { AICommandPalette } from '@/components/AICommandPalette'
-import { MobileAIChat } from '@/components/MobileAIChat'
-import { useUIStore } from '@/state/useUIStore'
+import { AIDock } from '@/components/AIDock'
+import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 import { exportToPDF } from '@/lib/export'
-import { autoPilot } from '@/lib/automation/autopilot-v2'
-import { googleCalendar } from '@/lib/integrations/google-calendar'
-import { localBrain } from '@/lib/database/local-brain'
-import { performanceMonitor } from '@/lib/monitoring/performance-monitor'
-import { useAIEventListeners } from '@/hooks/useAIEventListeners'
-import { CostMonitor } from '@/components/CostMonitor'
-import { AutoPilotNotifications } from '@/components/AutoPilotNotifications'
 import './styles/aesthetic-enhancements.css'
+import './styles/responsive-system.css'
+import './styles/theme-variations.css'
 
 function App() {
-  const { setTheme } = useUIStore()
-  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
-  const [chatOpen, setChatOpen] = useState(false)
-  useAIEventListeners()
   
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as 'dark' | 'light' | null
-    const initialTheme = savedTheme || 'dark'
-    setTheme(initialTheme)
-    
-    // Apply theme to document
-    document.documentElement.classList.toggle('dark', initialTheme === 'dark')
-    document.documentElement.setAttribute('data-theme', initialTheme)
-    
-    // Set color scheme for native elements
-    document.documentElement.style.colorScheme = initialTheme
-  }, [setTheme])
-  
-  // Initialize Life OS components
-  useEffect(() => {
-    const initializeLifeOS = async () => {
-      try {
-        console.log('🚀 Initializing Life OS...')
-        
-        // Initialize all systems
-        await autoPilot.initialize()
-        await googleCalendar.initialize()
-        
-        // Setup cleanup interval for cache
-        setInterval(() => localBrain.cleanupOldCache(), 86400000)
-        
-        // Start performance monitoring
-        performanceMonitor.trackTimeSaved(0, 'system_startup')
-        
-        console.log('Life OS initialized successfully')
-      } catch (error) {
-        console.error('Failed to initialize Life OS:', error)
-      }
-    }
-    
-    initializeLifeOS()
-    
-    // Cleanup on unmount
-    return () => {
-      autoPilot.stop()
-    }
+    // Initialize with dark theme by default
+    const savedTheme = localStorage.getItem('app-theme') || 'dark'
+    document.documentElement.classList.add(`theme-${savedTheme}`)
   }, [])
-  
   
   const handleJumpToNow = () => {
     window.dispatchEvent(new CustomEvent('jumpToNow'))
   }
   
   const handleExport = () => {
-    // For now, export to PDF. In the future, we can add a dialog to choose format
     exportToPDF()
   }
   
   return (
-    <div className="min-h-screen bg-background text-foreground aurora-bg" style={{ backgroundBlendMode: 'overlay' }}>
+    <div className="min-h-screen bg-background text-foreground" style={{ backgroundColor: 'var(--background)' }}>
       <Header onJumpToNow={handleJumpToNow} onExport={handleExport} />
-      <main className="relative">
+      
+      {/* Theme Switcher - Top Right */}
+      <div className="fixed top-20 right-4 z-50">
+        <ThemeSwitcher />
+      </div>
+      
+      <main className="relative page-container">
         <Outlet />
-        
-        {/* Desktop AI Chat - sidebar */}
-        {chatOpen && (
-          <div className="hidden lg:block fixed right-0 top-16 bottom-0 w-96 bg-white dark:bg-gray-900 border-l dark:border-gray-700 shadow-xl z-40">
-            <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
-              <h3 className="font-semibold">AI Assistant</h3>
-              <button
-                onClick={() => setChatOpen(false)}
-                className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                ✕
-              </button>
-            </div>
-            <ChatInterface className="h-[calc(100%-64px)]" />
-          </div>
-        )}
       </main>
       
-      {/* Mobile AI Chat */}
-      <MobileAIChat />
-      
-      {/* AI Command Palette */}
-      <AICommandPalette 
-        open={commandPaletteOpen}
-        onOpenChange={setCommandPaletteOpen}
-        onChatOpen={() => setChatOpen(true)}
-      />
-      
-      <InstallPWA />
-      <AssistantDock />
-      <UniversalCommand />
-      <ProactiveAssistant />
-      <CostMonitor />
-      <AutoPilotNotifications />
+      {/* AI Assistant Dock - Always Available */}
+      <AIDock />
     </div>
   )
 }

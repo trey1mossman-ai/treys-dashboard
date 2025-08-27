@@ -1,0 +1,370 @@
+/* Theme Variations - Light, Dark, Exciting */
+
+/* ============================================
+   DARK THEME (Default Professional)
+   ============================================ */
+.theme-dark {
+  --background: #0a0e1a;
+  --background-alt: #0f172a;
+  --foreground: #f8fafc;
+  
+  --card: #1e293b;
+  --card-hover: #2d3748;
+  
+  --primary: #00d4ff;
+  --primary-hover: #00a8cc;
+  --primary-foreground: #ffffff;
+  
+  --secondary: #64748b;
+  --secondary-hover: #475569;
+  
+  --accent: #00d4ff;
+  --accent-hover: #00a8cc;
+  
+  --border: rgba(148, 163, 184, 0.2);
+  --border-hover: rgba(148, 163, 184, 0.4);
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #64748b;
+  
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  
+  /* Glow effects */
+  --glow-primary: 0 0 20px rgba(0, 212, 255, 0.4);
+  --glow-hover: 0 0 30px rgba(0, 212, 255, 0.6);
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #00d4ff 0%, #0ea5e9 100%);
+  --gradient-background: linear-gradient(180deg, #0a0e1a 0%, #1e293b 100%);
+}
+
+/* Dark theme specific styles */
+.theme-dark .pill {
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  color: #00d4ff;
+}
+
+.theme-dark .pill:hover {
+  background: rgba(0, 212, 255, 0.2);
+  border-color: rgba(0, 212, 255, 0.5);
+  transform: scale(1.05);
+}
+
+/* ============================================
+   LIGHT THEME (Clean & Modern)
+   ============================================ */
+.theme-light {
+  --background: #f8f9fa;
+  --background-alt: #ffffff;
+  --foreground: #212529;
+  
+  --card: #ffffff;
+  --card-hover: #f8f9fa;
+  
+  --primary: #0ea5e9;
+  --primary-hover: #0284c7;
+  --primary-foreground: #ffffff;
+  
+  --secondary: #6b7280;
+  --secondary-hover: #4b5563;
+  
+  --accent: #0ea5e9;
+  --accent-hover: #0284c7;
+  
+  --border: #e5e7eb;
+  --border-hover: #d1d5db;
+  
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+  
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  
+  /* Glow effects - very subtle for light theme */
+  --glow-primary: 0 0 20px rgba(14, 165, 233, 0.15);
+  --glow-hover: 0 0 25px rgba(14, 165, 233, 0.2);
+  
+  /* Gradients - subtle and clean */
+  --gradient-primary: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+  --gradient-background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
+  
+  /* Light shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  
+  /* Component colors */
+  --accent-400: #38bdf8;
+  --accent-500: #0ea5e9;
+  --accent-600: #0284c7;
+}
+
+/* Light theme specific styles */
+.theme-light body {
+  background: #ffffff;
+  color: var(--foreground);
+}
+
+.theme-light .pill {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  color: #0ea5e9;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.theme-light .pill:hover {
+  background: #f9fafb;
+  border-color: #0ea5e9;
+  transform: scale(1.05);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.theme-light .card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.theme-light .header-clean {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid #e5e7eb;
+  color: var(--foreground);
+}
+
+.theme-light .button-responsive {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  color: #111827;
+}
+
+.theme-light .button-responsive:hover {
+  background: #f9fafb;
+  box-shadow: 0 0 15px rgba(14, 165, 233, 0.2);
+  transform: translateY(-1px);
+}
+
+.theme-light .button-primary {
+  background: #0ea5e9;
+  color: #ffffff;
+  border: 1px solid #0284c7;
+}
+
+.theme-light .button-primary:hover {
+  background: #0284c7;
+  box-shadow: 0 0 20px rgba(14, 165, 233, 0.3);
+  transform: translateY(-1px);
+}
+
+/* ============================================
+   EXCITING THEME (Vibrant & Energetic)
+   ============================================ */
+.theme-exciting {
+  --background: #0f0618;
+  --background-alt: #1a0b2e;
+  --foreground: #faf5ff;
+  
+  --card: #1f1235;
+  --card-hover: #2a1a4a;
+  
+  --primary: #a855f7;
+  --primary-hover: #9333ea;
+  --primary-foreground: #ffffff;
+  
+  --secondary: #f97316;
+  --secondary-hover: #ea580c;
+  
+  --accent: #f97316;
+  --accent-hover: #fb923c;
+  
+  --border: rgba(168, 85, 247, 0.2);
+  --border-hover: rgba(168, 85, 247, 0.4);
+  
+  --text-primary: #faf5ff;
+  --text-secondary: #e9d5ff;
+  --text-muted: #c084fc;
+  
+  --success: #84cc16;
+  --warning: #fbbf24;
+  --error: #f43f5e;
+  
+  /* Glow effects */
+  --glow-primary: 0 0 30px rgba(168, 85, 247, 0.5);
+  --glow-hover: 0 0 40px rgba(168, 85, 247, 0.7);
+  --glow-accent: 0 0 30px rgba(249, 115, 22, 0.5);
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  --gradient-accent: linear-gradient(135deg, #f97316 0%, #fbbf24 100%);
+  --gradient-background: linear-gradient(180deg, #0f0618 0%, #1f1235 50%, #2a1a4a 100%);
+  
+  /* Neon effects */
+  --neon-purple: 0 0 10px #a855f7, 0 0 20px #a855f7, 0 0 30px #a855f7;
+  --neon-orange: 0 0 10px #f97316, 0 0 20px #f97316, 0 0 30px #f97316;
+}
+
+/* Exciting theme specific styles */
+.theme-exciting body {
+  background: var(--gradient-background);
+  position: relative;
+}
+
+/* Animated background particles for exciting theme */
+.theme-exciting body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(168, 85, 247, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(249, 115, 22, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 20%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.theme-exciting .pill {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(249, 115, 22, 0.2) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  color: #e9d5ff;
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-exciting .pill::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(168, 85, 247, 0.3),
+    transparent
+  );
+  transform: rotate(45deg);
+  transition: all 0.5s;
+  opacity: 0;
+}
+
+.theme-exciting .pill:hover {
+  transform: scale(1.05);
+  border-color: #a855f7;
+  box-shadow: var(--neon-purple);
+}
+
+.theme-exciting .pill:hover::before {
+  animation: shimmer 0.5s ease-out;
+  opacity: 1;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+.theme-exciting .card {
+  background: rgba(31, 18, 53, 0.8);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.theme-exciting button {
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-exciting button.primary {
+  background: var(--gradient-primary);
+  box-shadow: var(--glow-primary);
+}
+
+.theme-exciting button.secondary {
+  background: var(--gradient-accent);
+  box-shadow: var(--glow-accent);
+}
+
+/* Glowing text for headers in exciting theme */
+.theme-exciting h1,
+.theme-exciting h2 {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+}
+
+/* ============================================
+   COMMON PILL STYLES (No Box Shadows)
+   ============================================ */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* Remove all box-shadow hover effects, keep only pill scale */
+.pill:hover {
+  /* No box-shadow, only transform */
+  transform: scale(1.05);
+}
+
+/* Active state */
+.pill:active {
+  transform: scale(0.98);
+}
+
+/* Focus state for accessibility */
+.pill:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Card styles without box hover effects */
+.card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 16px;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.card:hover {
+  background: var(--card-hover);
+  /* No box-shadow on hover */
+}
+
+/* Button styles without box shadows */
+button {
+  transition: transform 0.2s ease, background-color 0.3s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  /* No box-shadow */
+}
+
+button:active {
+  transform: translateY(0);
+}

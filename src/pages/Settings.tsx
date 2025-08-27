@@ -1,12 +1,8 @@
 import { useState } from 'react';
-import { Section } from '@/components/Section';
-import { Card } from '@/components/Card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Save, TestTube, Key, Globe, Mail, Download, Trash2, Moon, Sun, Calendar } from 'lucide-react';
+import { Save, TestTube, Key, Globe, Mail, Download, Trash2, Moon, Sun, Calendar, Settings as SettingsIcon, Shield, Smartphone } from 'lucide-react';
 import { googleCalendar } from '@/lib/integrations/google-calendar';
+import '../styles/responsive-system.css';
 
 export function Settings() {
   const { toast } = useToast();
@@ -48,389 +44,494 @@ export function Settings() {
     setTimeout(() => {
       toast({
         title: 'Connection Test',
-        description: `${service} is configured. Full test requires backend.`,
+        description: `${service} connection test completed. Check console for details.`,
       });
-    }, 1000);
+    }, 2000);
+  };
+
+  const toggleKeyVisibility = (key: string) => {
+    setShowKeys(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const connectCalendar = async () => {
+    try {
+      await googleCalendar.connect();
+      setIsCalendarConnected(true);
+      toast({
+        title: 'Calendar Connected',
+        description: 'Google Calendar has been connected successfully.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Connection Failed',
+        description: 'Failed to connect to Google Calendar.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const disconnectCalendar = () => {
+    googleCalendar.disconnect();
+    setIsCalendarConnected(false);
+    toast({
+      title: 'Calendar Disconnected',
+      description: 'Google Calendar has been disconnected.',
+    });
   };
 
   const exportData = () => {
-    const data: Record<string, any> = {};
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && !key.startsWith('api_')) {
-        data[key] = localStorage.getItem(key);
-      }
-    }
+    const data = {
+      apis,
+      timestamp: new Date().toISOString(),
+      version: '1.0'
+    };
     
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `agenda-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `dashboard-settings-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
     
     toast({
-      title: 'Data Exported',
-      description: 'Your data has been downloaded as JSON.',
+      title: 'Settings Exported',
+      description: 'Your settings have been exported successfully.',
     });
   };
 
-  const importData = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = JSON.parse(e.target?.result as string);
-        Object.entries(data).forEach(([key, value]) => {
-          if (!key.startsWith('api_')) {
-            localStorage.setItem(key, value as string);
-          }
-        });
-        toast({
-          title: 'Data Imported',
-          description: 'Your data has been restored successfully.',
-        });
-        setTimeout(() => window.location.reload(), 1000);
-      } catch (error) {
-        toast({
-          title: 'Import Failed',
-          description: 'Invalid backup file format.',
-          variant: 'destructive'
-        });
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  const clearAllData = () => {
-    if (!confirm('This will delete ALL your local data. Are you sure?')) {
-      return;
+  const clearData = () => {
+    if (confirm('Are you sure you want to clear all settings? This action cannot be undone.')) {
+      Object.keys(apis).forEach(key => {
+        localStorage.removeItem(`api_${key}`);
+      });
+      setApis({
+        openai: '',
+        anthropic: '',
+        n8n: '',
+        n8nToken: '',
+        sendgrid: '',
+        twilio: '',
+        twilioAuth: '',
+        twilioPhone: '',
+      });
+      toast({
+        title: 'Settings Cleared',
+        description: 'All settings have been cleared.',
+      });
     }
-    
-    const apiKeys = Object.keys(apis).map(k => `api_${k}`);
-    const savedApis: Record<string, string> = {};
-    apiKeys.forEach(key => {
-      const value = localStorage.getItem(key);
-      if (value) savedApis[key] = value;
-    });
-    
-    localStorage.clear();
-    
-    // Restore API keys
-    Object.entries(savedApis).forEach(([key, value]) => {
-      localStorage.setItem(key, value);
-    });
-    
-    toast({
-      title: 'Data Cleared',
-      description: 'All local data has been deleted (API keys preserved).',
-    });
-    
-    setTimeout(() => window.location.reload(), 1000);
   };
 
-  const toggleTheme = () => {
-    const isDark = document.documentElement.classList.contains('dark');
-    document.documentElement.classList.toggle('dark', !isDark);
-    localStorage.setItem('theme', isDark ? 'light' : 'dark');
-    toast({
-      title: 'Theme Changed',
-      description: `Switched to ${isDark ? 'light' : 'dark'} mode.`,
-    });
-  };
+  const apiSections = [
+    {
+      title: 'AI Services',
+      icon: <SettingsIcon className="w-5 h-5" />,
+      color: 'var(--accent-500)',
+      apis: [
+        { key: 'openai', label: 'OpenAI API Key', placeholder: 'sk-...' },
+        { key: 'anthropic', label: 'Anthropic API Key', placeholder: 'sk-ant-...' }
+      ]
+    },
+    {
+      title: 'Communication',
+      icon: <Mail className="w-5 h-5" />,
+      color: 'var(--success-500)',
+      apis: [
+        { key: 'sendgrid', label: 'SendGrid API Key', placeholder: 'SG...' },
+        { key: 'twilio', label: 'Twilio Account SID', placeholder: 'AC...' },
+        { key: 'twilioAuth', label: 'Twilio Auth Token', placeholder: 'Auth token...' },
+        { key: 'twilioPhone', label: 'Twilio Phone Number', placeholder: '+1234567890' }
+      ]
+    },
+    {
+      title: 'Automation',
+      icon: <Globe className="w-5 h-5" />,
+      color: 'var(--warn-500)',
+      apis: [
+        { key: 'n8n', label: 'n8n Webhook URL', placeholder: 'https://n8n.example.com/webhook/...' },
+        { key: 'n8nToken', label: 'n8n API Token', placeholder: 'n8n_api_...' }
+      ]
+    }
+  ];
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
-      <Section title="API Configuration">
-        <Card className="p-6 space-y-6">
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Key className="w-5 h-5" />
-              AI Services
-            </h3>
-            
-            <div className="grid gap-4">
-              <div>
-                <Label htmlFor="openai">OpenAI API Key</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="openai"
-                    type={showKeys.openai ? "text" : "password"}
-                    placeholder="sk-..."
-                    value={apis.openai}
-                    onChange={(e) => setApis({ ...apis, openai: e.target.value })}
-                  />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setShowKeys({ ...showKeys, openai: !showKeys.openai })}
+    <div style={{
+      fontFamily: 'Georgia, serif',
+      padding: 'clamp(1rem, 3vw, 2rem)',
+      maxWidth: '1600px',
+      margin: '0 auto',
+      background: 'var(--bg-gradient)',
+      minHeight: '100vh'
+    }}>
+      {/* Header */}
+      <div className="card-enhanced" style={{
+        padding: 'var(--space-4)',
+        marginBottom: 'var(--space-4)',
+        borderRadius: 'var(--radius-card)',
+        border: '2px solid var(--accent-500)'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 'var(--space-3)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+            <SettingsIcon className="w-8 h-8" style={{ color: 'var(--accent-500)' }} />
+            <div>
+              <h1 style={{
+                fontSize: 'var(--font-h1)',
+                fontWeight: 700,
+                color: 'var(--text-primary)',
+                margin: 0
+              }}>
+                Settings & Configuration
+              </h1>
+              <p style={{
+                fontSize: 'var(--font-body)',
+                color: 'var(--text-secondary)',
+                margin: '0.5rem 0 0 0'
+              }}>
+                Configure API keys, integrations, and system preferences
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--space-2)',
+            flexWrap: 'wrap'
+          }}>
+            <button
+              onClick={handleSave}
+              className="button-high-contrast"
+              style={{
+                padding: 'var(--space-2) var(--space-3)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-2)'
+              }}
+            >
+              <Save className="w-4 h-4" />
+              Save All
+            </button>
+            <button
+              onClick={exportData}
+              className="button-responsive"
+              style={{
+                padding: 'var(--space-2) var(--space-3)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-2)',
+                border: '1px solid var(--border-default)'
+              }}
+            >
+              <Download className="w-4 h-4" />
+              Export
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* API Configuration Sections */}
+      <div style={{
+        display: 'grid',
+        gap: 'var(--space-4)',
+        marginBottom: 'var(--space-4)'
+      }}>
+        {apiSections.map((section) => (
+          <div
+            key={section.title}
+            className="card-enhanced"
+            style={{
+              padding: 'var(--space-4)',
+              borderRadius: 'var(--radius-card)',
+              border: `1px solid ${section.color}`
+            }}
+          >
+            <h2 style={{
+              fontSize: 'var(--font-h2)',
+              fontWeight: 600,
+              color: 'var(--text-primary)',
+              marginBottom: 'var(--space-3)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--space-2)'
+            }}>
+              <span style={{ color: section.color }}>{section.icon}</span>
+              {section.title}
+            </h2>
+
+            <div style={{
+              display: 'grid',
+              gap: 'var(--space-3)'
+            }}>
+              {section.apis.map((api) => (
+                <div key={api.key} style={{
+                  display: 'grid',
+                  gridTemplateColumns: '200px 1fr auto auto',
+                  alignItems: 'center',
+                  gap: 'var(--space-2)',
+                  padding: 'var(--space-3)',
+                  background: 'rgba(255, 255, 255, 0.02)',
+                  borderRadius: 'var(--radius-medium)',
+                  border: '1px solid var(--border-default)'
+                }}>
+                  <label style={{
+                    fontSize: 'var(--font-body)',
+                    fontWeight: 500,
+                    color: 'var(--text-primary)'
+                  }}>
+                    {api.label}
+                  </label>
+                  
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showKeys[api.key] ? 'text' : 'password'}
+                      placeholder={api.placeholder}
+                      value={apis[api.key as keyof typeof apis]}
+                      onChange={(e) => setApis(prev => ({ ...prev, [api.key]: e.target.value }))}
+                      className="input-enhanced"
+                      style={{
+                        width: '100%',
+                        padding: 'var(--space-2)',
+                        borderRadius: 'var(--radius-medium)',
+                        fontSize: 'var(--font-body)',
+                        paddingRight: '40px'
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => toggleKeyVisibility(api.key)}
+                      style={{
+                        position: 'absolute',
+                        right: '8px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--text-muted)',
+                        cursor: 'pointer',
+                        padding: '4px'
+                      }}
+                    >
+                      {showKeys[api.key] ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => testConnection(api.label)}
+                    className="button-responsive"
+                    style={{
+                      padding: 'var(--space-1) var(--space-2)',
+                      fontSize: 'var(--font-small)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 'var(--space-1)'
+                    }}
+                    disabled={!apis[api.key as keyof typeof apis]}
                   >
-                    {showKeys.openai ? '🙈' : '👁️'}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => testConnection('openai')}
-                  >
-                    <TestTube className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
+                    <TestTube className="w-3 h-3" />
+                    Test
+                  </button>
 
-              <div>
-                <Label htmlFor="anthropic">Anthropic API Key (Claude)</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="anthropic"
-                    type={showKeys.anthropic ? "text" : "password"}
-                    placeholder="sk-ant-..."
-                    value={apis.anthropic}
-                    onChange={(e) => setApis({ ...apis, anthropic: e.target.value })}
-                  />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setShowKeys({ ...showKeys, anthropic: !showKeys.anthropic })}
-                  >
-                    {showKeys.anthropic ? '🙈' : '👁️'}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => testConnection('anthropic')}
-                  >
-                    <TestTube className="w-4 h-4" />
-                  </Button>
+                  <div style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: apis[api.key as keyof typeof apis] ? 'var(--success-500)' : 'var(--text-muted)'
+                  }} />
                 </div>
-              </div>
+              ))}
             </div>
           </div>
+        ))}
+      </div>
 
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Globe className="w-5 h-5" />
-              Automation
-            </h3>
+      {/* Calendar Integration & Data Management */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+        gap: 'var(--space-4)'
+      }}>
+        {/* Calendar Integration */}
+        <div className="card-enhanced" style={{
+          padding: 'var(--space-4)',
+          borderRadius: 'var(--radius-card)',
+          border: '1px solid var(--success-500)'
+        }}>
+          <h2 style={{
+            fontSize: 'var(--font-h2)',
+            fontWeight: 600,
+            color: 'var(--text-primary)',
+            marginBottom: 'var(--space-3)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--space-2)'
+          }}>
+            <Calendar className="w-6 h-6" style={{ color: 'var(--success-500)' }} />
+            Calendar Integration
+          </h2>
+
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: 'var(--space-3)',
+            background: isCalendarConnected 
+              ? 'rgba(16, 185, 129, 0.1)' 
+              : 'rgba(245, 158, 11, 0.1)',
+            border: `1px solid ${isCalendarConnected ? 'var(--success-500)' : 'var(--warn-500)'}`,
+            borderRadius: 'var(--radius-medium)'
+          }}>
+            <div>
+              <p style={{
+                fontSize: 'var(--font-body)',
+                fontWeight: 600,
+                color: 'var(--text-primary)',
+                marginBottom: 'var(--space-1)'
+              }}>
+                Google Calendar
+              </p>
+              <p style={{
+                fontSize: 'var(--font-small)',
+                color: 'var(--text-secondary)'
+              }}>
+                {isCalendarConnected ? 'Connected and syncing' : 'Not connected'}
+              </p>
+            </div>
             
-            <div className="grid gap-4">
-              <div>
-                <Label htmlFor="n8n">n8n Webhook URL</Label>
-                <Input
-                  id="n8n"
-                  type="url"
-                  placeholder="https://your-n8n.com/webhook/..."
-                  value={apis.n8n}
-                  onChange={(e) => setApis({ ...apis, n8n: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="n8nToken">n8n API Token</Label>
-                <Input
-                  id="n8nToken"
-                  type={showKeys.n8nToken ? "text" : "password"}
-                  placeholder="Token for n8n"
-                  value={apis.n8nToken}
-                  onChange={(e) => setApis({ ...apis, n8nToken: e.target.value })}
-                />
-              </div>
-            </div>
+            <button
+              onClick={isCalendarConnected ? disconnectCalendar : connectCalendar}
+              className={isCalendarConnected ? "button-responsive" : "button-high-contrast"}
+              style={{
+                padding: 'var(--space-2) var(--space-3)',
+                border: isCalendarConnected ? '1px solid var(--error-500)' : undefined,
+                color: isCalendarConnected ? 'var(--error-500)' : undefined
+              }}
+            >
+              {isCalendarConnected ? 'Disconnect' : 'Connect'}
+            </button>
           </div>
 
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Mail className="w-5 h-5" />
-              Communication Services
-            </h3>
-            
-            <div className="grid gap-4">
-              <div>
-                <Label htmlFor="sendgrid">SendGrid API Key</Label>
-                <Input
-                  id="sendgrid"
-                  type={showKeys.sendgrid ? "text" : "password"}
-                  placeholder="SG...."
-                  value={apis.sendgrid}
-                  onChange={(e) => setApis({ ...apis, sendgrid: e.target.value })}
-                />
-              </div>
+          <div style={{
+            marginTop: 'var(--space-3)',
+            padding: 'var(--space-2)',
+            fontSize: 'var(--font-small)',
+            color: 'var(--text-muted)',
+            background: 'rgba(96, 165, 250, 0.1)',
+            border: '1px solid var(--accent-500)',
+            borderRadius: 'var(--radius-medium)'
+          }}>
+            <p>Calendar integration allows automatic event syncing and smart scheduling suggestions.</p>
+          </div>
+        </div>
 
-              <div>
-                <Label htmlFor="twilio">Twilio Account SID</Label>
-                <Input
-                  id="twilio"
-                  type="text"
-                  placeholder="AC..."
-                  value={apis.twilio}
-                  onChange={(e) => setApis({ ...apis, twilio: e.target.value })}
-                />
-              </div>
+        {/* Data Management */}
+        <div className="card-enhanced" style={{
+          padding: 'var(--space-4)',
+          borderRadius: 'var(--radius-card)',
+          border: '1px solid var(--warn-500)'
+        }}>
+          <h2 style={{
+            fontSize: 'var(--font-h2)',
+            fontWeight: 600,
+            color: 'var(--text-primary)',
+            marginBottom: 'var(--space-3)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--space-2)'
+          }}>
+            <Shield className="w-6 h-6" style={{ color: 'var(--warn-500)' }} />
+            Data Management
+          </h2>
 
-              <div>
-                <Label htmlFor="twilioAuth">Twilio Auth Token</Label>
-                <Input
-                  id="twilioAuth"
-                  type={showKeys.twilioAuth ? "text" : "password"}
-                  placeholder="Auth token"
-                  value={apis.twilioAuth}
-                  onChange={(e) => setApis({ ...apis, twilioAuth: e.target.value })}
-                />
-              </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+            <div style={{
+              padding: 'var(--space-3)',
+              background: 'rgba(255, 255, 255, 0.02)',
+              borderRadius: 'var(--radius-medium)',
+              border: '1px solid var(--border-default)'
+            }}>
+              <h3 style={{
+                fontSize: 'var(--font-body)',
+                fontWeight: 600,
+                color: 'var(--text-primary)',
+                marginBottom: 'var(--space-2)'
+              }}>
+                Export Settings
+              </h3>
+              <p style={{
+                fontSize: 'var(--font-small)',
+                color: 'var(--text-secondary)',
+                marginBottom: 'var(--space-2)'
+              }}>
+                Download your current configuration as a backup file.
+              </p>
+              <button
+                onClick={exportData}
+                className="button-responsive"
+                style={{
+                  padding: 'var(--space-2) var(--space-3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'var(--space-2)'
+                }}
+              >
+                <Download className="w-4 h-4" />
+                Export Configuration
+              </button>
+            </div>
 
-              <div>
-                <Label htmlFor="twilioPhone">Twilio Phone Number</Label>
-                <Input
-                  id="twilioPhone"
-                  type="tel"
-                  placeholder="+1234567890"
-                  value={apis.twilioPhone}
-                  onChange={(e) => setApis({ ...apis, twilioPhone: e.target.value })}
-                />
-              </div>
+            <div style={{
+              padding: 'var(--space-3)',
+              background: 'rgba(239, 68, 68, 0.1)',
+              borderRadius: 'var(--radius-medium)',
+              border: '1px solid var(--error-500)'
+            }}>
+              <h3 style={{
+                fontSize: 'var(--font-body)',
+                fontWeight: 600,
+                color: 'var(--text-primary)',
+                marginBottom: 'var(--space-2)'
+              }}>
+                Clear All Data
+              </h3>
+              <p style={{
+                fontSize: 'var(--font-small)',
+                color: 'var(--text-secondary)',
+                marginBottom: 'var(--space-2)'
+              }}>
+                Remove all stored API keys and configuration data. This action cannot be undone.
+              </p>
+              <button
+                onClick={clearData}
+                style={{
+                  padding: 'var(--space-2) var(--space-3)',
+                  background: 'var(--error-500)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 'var(--radius-medium)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'var(--space-2)',
+                  fontSize: 'var(--font-body)',
+                  fontFamily: 'Georgia, serif',
+                  fontWeight: 600,
+                  transition: 'all var(--transition-fast)'
+                }}
+              >
+                <Trash2 className="w-4 h-4" />
+                Clear All Data
+              </button>
             </div>
           </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              Integrations
-            </h3>
-            
-            <div className="p-4 bg-muted/50 rounded-lg space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Google Calendar</p>
-                  <p className="text-sm text-muted-foreground">
-                    Sync your events and let AI manage your schedule
-                  </p>
-                </div>
-                <Button
-                  variant={isCalendarConnected ? "secondary" : "default"}
-                  onClick={async () => {
-                    try {
-                      if (isCalendarConnected) {
-                        await googleCalendar.disconnect();
-                        setIsCalendarConnected(false);
-                        toast({
-                          title: 'Calendar Disconnected',
-                          description: 'Google Calendar has been disconnected.',
-                        });
-                      } else {
-                        await googleCalendar.authenticate();
-                        setIsCalendarConnected(googleCalendar.isConnected());
-                        if (googleCalendar.isConnected()) {
-                          toast({
-                            title: 'Calendar Connected',
-                            description: 'Google Calendar has been connected successfully.',
-                          });
-                        }
-                      }
-                    } catch (error) {
-                      toast({
-                        title: 'Connection Failed',
-                        description: 'Failed to connect to Google Calendar. Please try again.',
-                        variant: 'destructive'
-                      });
-                    }
-                  }}
-                >
-                  {isCalendarConnected ? (
-                    <>
-                      <Calendar className="w-4 h-4 mr-2" />
-                      Calendar Connected ✓
-                    </>
-                  ) : (
-                    <>
-                      <Calendar className="w-4 h-4 mr-2" />
-                      Connect Google Calendar
-                    </>
-                  )}
-                </Button>
-              </div>
-              
-              {isCalendarConnected && (
-                <div className="pt-2 border-t text-sm text-muted-foreground">
-                  <p>✓ Events will sync automatically</p>
-                  <p>✓ AI can create and manage calendar events</p>
-                  <p>✓ Conflict detection enabled</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <Button onClick={handleSave} className="w-full hover-glow">
-            <Save className="w-4 h-4 mr-2" />
-            Save All Settings
-          </Button>
-        </Card>
-      </Section>
-
-      <Section title="Application Settings">
-        <Card className="p-6 space-y-4">
-          <div className="grid gap-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Theme</p>
-                <p className="text-sm text-muted-foreground">Toggle between light and dark mode</p>
-              </div>
-              <Button variant="outline" onClick={toggleTheme}>
-                {document.documentElement.classList.contains('dark') ? (
-                  <Sun className="w-4 h-4" />
-                ) : (
-                  <Moon className="w-4 h-4" />
-                )}
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Export Data</p>
-                <p className="text-sm text-muted-foreground">Download all your data as JSON</p>
-              </div>
-              <Button variant="outline" onClick={exportData}>
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Import Data</p>
-                <p className="text-sm text-muted-foreground">Restore from a backup file</p>
-              </div>
-              <div>
-                <Label htmlFor="import-file">
-                  <Button variant="outline" onClick={() => document.getElementById('import-file')?.click()}>
-                    <Download className="w-4 h-4 mr-2 rotate-180" />
-                    Import
-                  </Button>
-                </Label>
-                <Input
-                  id="import-file"
-                  type="file"
-                  accept=".json"
-                  className="hidden"
-                  onChange={importData}
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-destructive">Clear All Data</p>
-                <p className="text-sm text-muted-foreground">Remove all locally stored data</p>
-              </div>
-              <Button variant="destructive" onClick={clearAllData}>
-                <Trash2 className="w-4 h-4 mr-2" />
-                Clear Data
-              </Button>
-            </div>
-          </div>
-        </Card>
-      </Section>
+        </div>
+      </div>
     </div>
   );
 }

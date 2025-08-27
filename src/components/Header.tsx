@@ -1,10 +1,13 @@
-import { Calendar, Home, Dumbbell, MessageSquare, Settings, Clock, FileDown } from 'lucide-react'
+import { Calendar, Home, Dumbbell, MessageSquare, Settings, Clock, FileDown, CalendarCheck } from 'lucide-react'
 import { Button } from './ui/button'
 import { Link, useLocation } from 'react-router-dom'
 import { InstallPWA } from './InstallPWA'
+import { LiveClock } from './LiveClock'
 import { useUIStore } from '@/state/useUIStore'
 import { useEffect, useState } from 'react'
 import '../styles/aesthetic-enhancements.css'
+import '../styles/responsive-system.css'
+import '../styles/navigation-buttons.css'
 
 interface HeaderProps {
   onJumpToNow?: () => void
@@ -36,60 +39,56 @@ export function Header({ onJumpToNow, onExport }: HeaderProps) {
   
   const navItems = [
     { path: '/', icon: Home, label: 'Dashboard' },
+    { path: '/schedule', icon: CalendarCheck, label: 'Schedule' },
     { path: '/workflows', icon: MessageSquare, label: 'Workflows' },
     { path: '/fitness', icon: Dumbbell, label: 'Fitness' },
     { path: '/settings', icon: Settings, label: 'Settings' }
   ]
   
   return (
-    <header className="border-b border-border glass-morphism-enhanced sticky top-0 z-40">
+    <header className="header-clean border-b sticky top-0 z-40" style={{ borderColor: 'var(--border-color)' }}>
+      <div className="header-wave-bg" />
       <div className="container mx-auto px-4 py-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-black wave-logo floating">
-              Agenda Dashboard
+            <h1 className="header-title text-crisp">
+              TREY'S DASHBOARD
             </h1>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Calendar className="w-4 h-4" />
-              {today}
-            </div>
           </div>
           
-          <nav className="flex items-center gap-2 no-print">
+          <div className="hidden md:block">
+            <LiveClock />
+          </div>
+          
+          <nav className="nav-responsive no-print">
             {navItems.map(item => (
-              <Link key={item.path} to={item.path}>
-                <Button
-                  variant={location.pathname === item.path ? 'default' : 'ghost'}
-                  size="sm"
-                  className={`gap-2 ${location.pathname === item.path ? 'shiny-button' : 'glass-morphism-enhanced hover-glow'}`}
+              <Link key={item.path} to={item.path} className="nav-item">
+                <button
+                  className={`nav-button ${location.pathname === item.path ? 'active' : ''}`}
                 >
-                  <item.icon className="w-4 h-4" />
-                  <span className="hidden md:inline">{item.label}</span>
-                </Button>
+                  <item.icon className="nav-button-icon w-4 h-4" />
+                  <span>{item.label}</span>
+                </button>
               </Link>
             ))}
             
             {location.pathname === '/' && (
               <>
-                <Button
-                  variant="default"
-                  size="sm"
+                <button
                   onClick={onJumpToNow}
-                  className="gap-2 shiny-button pulse-ring"
+                  className="nav-button nav-button-special"
                 >
-                  <Clock className="w-4 h-4 animate-pulse" />
-                  <span className="hidden md:inline font-medium">Jump to Now</span>
-                </Button>
+                  <Clock className="nav-button-icon w-4 h-4" />
+                  <span className="font-medium">Jump to Now</span>
+                </button>
                 
-                <Button
-                  variant="outline"
-                  size="sm"
+                <button
                   onClick={onExport}
-                  className="gap-2 glass-morphism-enhanced hover-glow reactive-hover"
+                  className="nav-button nav-button-special"
                 >
-                  <FileDown className="w-4 h-4" />
-                  <span className="hidden md:inline">Export</span>
-                </Button>
+                  <FileDown className="nav-button-icon w-4 h-4" />
+                  <span>Export</span>
+                </button>
               </>
             )}
             

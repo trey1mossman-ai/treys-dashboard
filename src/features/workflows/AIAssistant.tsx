@@ -14,24 +14,16 @@ interface Message {
 }
 
 // System prompt to give the AI context about the app
-const SYSTEM_PROMPT = `You are an AI assistant for an Agenda/Task management app. You can help users:
+const SYSTEM_PROMPT = `You are a helpful AI assistant. Be conversational and natural.
 
-1. Manage their daily agenda items (add, edit, delete, complete tasks)
-2. Create and manage quick notes
-3. Track fitness goals (workouts and meals)
-4. Set up automations and webhooks
-5. Analyze their productivity and provide insights
+Return ONLY valid JSON:
+{
+  "success": true,
+  "message": "Your response",
+  "actions": []
+}
 
-When users ask you to perform actions, analyze their intent and provide helpful responses. You can suggest specific actions they can take in the app.
-
-Current capabilities:
-- Add agenda items with specific times
-- Create quick notes with tags
-- Log workouts and meals
-- View and analyze daily progress
-- Set up quick action automations
-
-Be conversational and helpful. If you're asked to do something, explain what the user needs to do in the app to accomplish it.`;
+Just respond naturally without prefixes like "I've analyzed" or "Here's what I can do".`;
 
 export function AIAssistant() {
   const { toast } = useToast();
@@ -72,22 +64,6 @@ export function AIAssistant() {
     setIsLoading(true);
 
     try {
-      // Check if API keys are configured
-      const openaiKey = localStorage.getItem('api_openai');
-      const anthropicKey = localStorage.getItem('api_anthropic');
-      
-      if (!openaiKey && !anthropicKey) {
-        const errorMessage: Message = {
-          role: 'assistant',
-          content: 'Please configure your OpenAI or Anthropic API key in Settings to enable AI chat.',
-          timestamp: new Date(),
-          error: true
-        };
-        setMessages(prev => [...prev, errorMessage]);
-        setIsLoading(false);
-        return;
-      }
-
       // Prepare messages for API (include conversation history for context)
       const apiMessages = messages
         .filter(m => m.role !== 'system') // Remove system messages for display
@@ -97,47 +73,61 @@ export function AIAssistant() {
           content: m.content
         }));
 
-      // Add system prompt at the beginning for API
-      const fullMessages = [
-        { role: 'system', content: SYSTEM_PROMPT },
-        ...apiMessages
-      ];
-
-      // Make API request
-      const response = await fetch('/api/agent/relay', {
+      // Make API request to the backend proxy
+      const apiUrl = window.location.hostname === 'localhost' 
+        ? 'http://localhost:8788' 
+        : '';
+      
+      const response = await fetch(`${apiUrl}/api/ai/respond`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(openaiKey && { 'X-OpenAI-Key': openaiKey }),
-          ...(anthropicKey && { 'X-Anthropic-Key': anthropicKey }),
-          'X-Model-Provider': anthropicKey ? 'anthropic' : 'openai',
-          'X-Model-Name': anthropicKey ? 'claude-3-haiku-20240307' : 'gpt-3.5-turbo'
         },
-        body: JSON.stringify({ messages: fullMessages })
+        body: JSON.stringify({
+          provider: 'openai',
+          messages: apiMessages,
+          system: SYSTEM_PROMPT,
+          stream: false,
+          enable_tools: false
+        })
       });
 
       if (!response.ok) {
-        throw new Error(`API request failed: ${response.statusText}`);
+        const errorData = await response.text();
+        console.error('AI API error:', response.status, errorData);
+        throw new Error(`API request failed: ${response.status}`);
       }
 
       const data = await response.json();
       
+      // Extract the assistant's response
+      let assistantContent = '';
+      if (data.choices && data.choices[0]) {
+        assistantContent = data.choices[0].message.content;
+      } else if (data.content && data.content[0]) {
+        assistantContent = data.content[0].text;
+      } else if (data.message) {
+        assistantContent = data.message;
+      } else {
+        assistantContent = 'I received your message but had trouble processing the response.';
+      }
+      
       // Add assistant response to chat
       const assistantMessage: Message = {
         role: 'assistant',
-        content: data.content,
+        content: assistantContent,
         timestamp: new Date()
       };
       
       setMessages(prev => [...prev, assistantMessage]);
 
       // Check if the AI suggested any actions we can help with
-      if (data.content.toLowerCase().includes('add') && data.content.toLowerCase().includes('agenda')) {
+      if (assistantContent.toLowerCase().includes('add') && assistantContent.toLowerCase().includes('agenda')) {
         toast({
           title: 'Tip',
           description: 'You can add agenda items using the "Add Item" button in the Dashboard.',
         });
-      } else if (data.content.toLowerCase().includes('note')) {
+      } else if (assistantContent.toLowerCase().includes('note')) {
         toast({
           title: 'Tip', 
           description: 'Create notes using the "New Note" button in the Dashboard.',

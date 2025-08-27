@@ -45,8 +45,8 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
         className="fixed inset-0 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
         onClick={() => onOpenChange(false)}
       />
-      <div className="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
-        <div className="relative w-full max-w-lg pointer-events-auto animate-in zoom-in-95 duration-200">
+      <div className="fixed inset-0 flex items-center justify-center p-4 md:p-8 pointer-events-none">
+        <div className="relative w-full max-w-[95vw] md:max-w-lg pointer-events-auto animate-in zoom-in-95 duration-200">
           {children}
         </div>
       </div>
@@ -72,7 +72,7 @@ export function DialogContent({
   return (
     <div 
       className={cn(
-        "relative bg-card border border-border rounded-lg shadow-xl p-6 max-h-[90vh] overflow-y-auto",
+        "relative bg-card border border-border rounded-lg shadow-xl p-4 md:p-6 max-h-[85vh] md:max-h-[90vh] overflow-y-auto",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         className
       )}
@@ -85,10 +85,10 @@ export function DialogContent({
             e.stopPropagation()
             onClose()
           }}
-          className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="absolute right-3 top-3 md:right-4 md:top-4 p-1 rounded-sm opacity-70 hover:opacity-100 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary hover:bg-muted"
           aria-label="Close dialog"
         >
-          <X className="h-4 w-4" />
+          <X className="h-5 w-5 md:h-4 md:w-4" />
           <span className="sr-only">Close</span>
         </button>
       )}
@@ -105,7 +105,7 @@ export function DialogHeader({
   className?: string
 }) {
   return (
-    <div className={cn("flex flex-col space-y-1.5 text-center sm:text-left", className)}>
+    <div className={cn("flex flex-col space-y-1.5 text-left", className)}>
       {children}
     </div>
   )
@@ -119,7 +119,7 @@ export function DialogTitle({
   className?: string
 }) {
   return (
-    <h2 className={cn("text-lg font-semibold", className)}>
+    <h2 className={cn("text-xl md:text-lg font-semibold pr-8", className)}>
       {children}
     </h2>
   )
@@ -133,7 +133,7 @@ export function DialogDescription({
   className?: string
 }) {
   return (
-    <p className={cn("text-sm text-muted-foreground", className)}>
+    <p className={cn("text-base md:text-sm text-muted-foreground", className)}>
       {children}
     </p>
   )
@@ -147,7 +147,7 @@ export function DialogFooter({
   className?: string
 }) {
   return (
-    <div className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 mt-6", className)}>
+    <div className={cn("flex flex-col gap-3 md:flex-row md:justify-end md:space-x-2 md:gap-0 mt-6", className)}>
       {children}
     </div>
   )

@@ -1,0 +1,355 @@
+/* MOBILE CONSOLIDATED STYLES - Single Source of Truth */
+/* This file replaces all conflicting mobile CSS files */
+
+/* ============================================
+   1. CRITICAL MOBILE FIXES
+   ============================================ */
+
+/* Prevent iOS zoom on input focus */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  input:focus,
+  textarea:focus,
+  select:focus {
+    font-size: 16px !important;
+  }
+}
+
+/* ============================================
+   2. MOBILE LAYOUT SYSTEM
+   ============================================ */
+
+@media (max-width: 767px) {
+  /* Viewport control */
+  html {
+    overflow-x: hidden;
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    width: 100vw;
+  }
+  
+  #root {
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  
+  /* Single scroll container */
+  .main-scroll-container {
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  
+  /* Prevent nested scrolling */
+  .no-scroll {
+    overflow: hidden;
+    height: auto;
+  }
+  
+  /* Container system */
+  .mobile-container {
+    width: 100%;
+    padding: 0 12px;
+    box-sizing: border-box;
+  }
+  
+  .mobile-safe-area {
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ============================================
+   3. TOUCH TARGETS & ACCESSIBILITY
+   ============================================ */
+
+@media (max-width: 767px) {
+  /* Minimum touch target size (WCAG AAA) */
+  button,
+  a,
+  input[type="checkbox"],
+  input[type="radio"],
+  .touchable,
+  .interactive {
+    min-height: 44px;
+    min-width: 44px;
+    position: relative;
+  }
+  
+  /* Ensure clickable area extends to minimum size */
+  button::before,
+  a::before,
+  .touchable::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 44px;
+    min-height: 44px;
+    z-index: -1;
+  }
+  
+  /* Small buttons exception */
+  .btn-sm,
+  .button-small {
+    min-height: 36px;
+    min-width: 36px;
+  }
+  
+  /* Input fields */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="date"],
+  input[type="time"],
+  textarea,
+  select {
+    min-height: 44px;
+    padding: 12px;
+    font-size: 16px; /* Prevent zoom */
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+/* ============================================
+   4. RESPONSIVE TYPOGRAPHY
+   ============================================ */
+
+@media (max-width: 767px) {
+  /* Base font size for readability */
+  body {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  
+  /* Heading scale */
+  h1 { 
+    font-size: clamp(24px, 6vw, 32px);
+    line-height: 1.2;
+  }
+  
+  h2 { 
+    font-size: clamp(20px, 5vw, 28px);
+    line-height: 1.3;
+  }
+  
+  h3 { 
+    font-size: clamp(18px, 4.5vw, 24px);
+    line-height: 1.3;
+  }
+  
+  h4 { 
+    font-size: clamp(16px, 4vw, 20px);
+    line-height: 1.4;
+  }
+  
+  /* Text utilities */
+  .text-xs { font-size: 12px; }
+  .text-sm { font-size: 14px; }
+  .text-base { font-size: 16px; }
+  .text-lg { font-size: 18px; }
+  .text-xl { font-size: 20px; }
+  .text-2xl { font-size: 24px; }
+}
+
+/* ============================================
+   5. MOBILE COMPONENTS
+   ============================================ */
+
+@media (max-width: 767px) {
+  /* Cards */
+  .card,
+  .card-responsive {
+    width: calc(100% - 24px);
+    margin: 12px;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Headers */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--background, #0a0e1a);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Bottom navigation */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: var(--background, #0a0e1a);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  /* Modals */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+  }
+  
+  .modal-content {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--background);
+    border-radius: 20px 20px 0 0;
+    padding: 20px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+    max-height: 90vh;
+    overflow-y: auto;
+    z-index: 201;
+  }
+  
+  /* Lists */
+  .list-item {
+    padding: 12px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .list-item:active {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  /* Forms */
+  .form-group {
+    margin-bottom: 16px;
+  }
+  
+  .form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
+  /* Grids become stacks */
+  .grid,
+  .page-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+/* ============================================
+   6. PERFORMANCE OPTIMIZATIONS
+   ============================================ */
+
+@media (max-width: 767px) {
+  /* Disable expensive effects on mobile */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Optimize animations */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  
+  /* Hardware acceleration for smooth scrolling */
+  .scroll-container {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+  
+  /* Prevent text selection on interactive elements */
+  button,
+  a,
+  .interactive {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+/* ============================================
+   7. TABLET ADJUSTMENTS
+   ============================================ */
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+  
+  .card {
+    padding: 20px;
+  }
+}
+
+/* ============================================
+   8. DESKTOP PRESERVATION
+   ============================================ */
+
+@media (min-width: 1024px) {
+  /* Ensure desktop layouts are not affected */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+  
+  /* Reset mobile overrides */
+  button,
+  a,
+  input {
+    min-height: auto;
+    min-width: auto;
+  }
+  
+  /* Desktop hover states */
+  button:hover,
+  a:hover,
+  .interactive:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}

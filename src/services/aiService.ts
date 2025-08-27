@@ -85,45 +85,32 @@ class AIService {
   }
   
   isConfigured(): boolean {
+    // In production, we always use the backend proxy which has the API keys
+    // So we just need to check if a provider is configured
     console.log('Checking AI configuration...')
-    console.log('Current config:', this.config)
     
-    const loadedConfig = this.loadConfig()
-    console.log('Loaded config from localStorage:', loadedConfig)
-    
-    const stored = localStorage.getItem('ai_config')
-    console.log('Raw localStorage ai_config:', stored)
-    
-    const isConfigured = this.config !== null || loadedConfig !== null
-    console.log('Final isConfigured result:', isConfigured)
-    
-    return isConfigured
+    // Always return true since backend handles the API keys
+    // The backend will return appropriate errors if not configured
+    return true
   }
   
   async processCommand(command: string): Promise<AIResponse> {
     console.log('processCommand called with:', command)
     
-    if (!this.config && !this.loadConfig()) {
-      console.log('No AI config found')
-      return {
-        success: false,
-        message: 'AI service not configured. Please add your API credentials in Settings.'
-      }
+    // Get provider preference from localStorage or use default
+    let provider = 'openai' // default provider
+    const storedConfig = this.loadConfig()
+    if (storedConfig?.provider) {
+      provider = storedConfig.provider
     }
     
-    const config = this.config || this.loadConfig()!
-    console.log('Using AI config:', { provider: config.provider, model: config.model, hasApiKey: !!config.apiKey })
+    console.log('Using AI provider:', provider)
     
     try {
-      if (config.provider === 'claude') {
-        return await this.processClaudeCommand(command, config)
-      } else if (config.provider === 'openai') {
-        return await this.processOpenAICommand(command, config)
-      }
-      
-      return {
-        success: false,
-        message: 'Unknown AI provider: ' + config.provider
+      if (provider === 'claude' || provider === 'anthropic') {
+        return await this.processClaudeCommand(command, { provider: 'claude', apiKey: '', model: '' })
+      } else {
+        return await this.processOpenAICommand(command, { provider: 'openai', apiKey: '', model: '' })
       }
     } catch (error: any) {
       console.error('AI command processing error:', error)
@@ -135,19 +122,23 @@ class AIService {
   }
   
   private async processClaudeCommand(command: string, config: AIConfig): Promise<AIResponse> {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    // Use the backend proxy endpoint instead of direct Claude API call
+    const apiUrl = window.location.hostname === 'localhost' 
+      ? 'http://localhost:8788' 
+      : '';  // Use same origin in production
+    
+    const response = await fetch(`${apiUrl}/api/ai/respond`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': config.apiKey,
-        'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: config.model || 'claude-3-haiku-20240307',
-        max_tokens: 1024,
+        provider: 'anthropic',
         messages: [{
           role: 'user',
-          content: `You are an AI assistant controlling an agenda app. Parse this command and return a JSON response with actions to take: "${command}"
+          content: command
+        }],
+        system: `You are an AI assistant controlling an agenda app. Parse commands and return a JSON response with actions to take.
           
           Available actions:
           - add: Add a new agenda item (provide title, startTime, endTime, tag, notes)
@@ -174,20 +165,35 @@ class AIService {
                 }
               }
             ]
-          }`
-        }],
-        temperature: 0.3
+          }`,
+        stream: false,
+        enable_tools: false
       })
     })
     
     if (!response.ok) {
-      throw new Error(`Claude API error: ${response.statusText}`)
+      const errorData = await response.text()
+      console.error('Backend proxy error:', response.status, errorData)
+      throw new Error(`Backend proxy error: ${response.statusText}`)
     }
     
     const data = await response.json()
     try {
-      const parsed = JSON.parse(data.content[0].text)
-      return parsed
+      // The backend proxy returns the Anthropic response
+      if (data.content && data.content[0]) {
+        const parsed = JSON.parse(data.content[0].text)
+        return parsed
+      } else if (data.error) {
+        return {
+          success: false,
+          message: data.error
+        }
+      } else {
+        return {
+          success: false,
+          message: 'Failed to parse AI response'
+        }
+      }
     } catch {
       return {
         success: false,
@@ -210,49 +216,34 @@ class AIService {
     }
     
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      // Use the backend proxy endpoint instead of direct OpenAI API call
+      const apiUrl = window.location.hostname === 'localhost' 
+        ? 'http://localhost:8788' 
+        : '';  // Use same origin in production
+      
+      const response = await fetch(`${apiUrl}/api/ai/respond`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${config.apiKey}`
         },
         body: JSON.stringify({
-          model: config.model || 'gpt-4',
+          provider: 'openai',
           messages: [{
-            role: 'system',
-            content: `You are an AI assistant helping manage a daily agenda app. You can help with agenda items, todos, food logging, and supplements.
-
-Parse user commands and respond with a JSON object containing:
-- success: boolean
-- message: string describing what you're doing
-- actions: array of action objects
-
-Action types:
-- add_agenda: Add agenda item (needs: title, startTime, endTime)
-- add_todo: Add todo item (needs: text, priority)
-- add_food: Add food item (needs: name, calories, protein, carbs, fat)
-- add_supplement: Add supplement (needs: name, dose, time)
-- complete_item: Mark item complete (needs: id, type)
-
-Example response:
-{
-  "success": true,
-  "message": "Added meeting to your agenda",
-  "actions": [{
-    "action": "add_agenda",
-    "data": {
-      "title": "Team meeting",
-      "startTime": "14:00",
-      "endTime": "15:00"
-    }
-  }]
-}`
-          }, {
             role: 'user',
             content: command
           }],
-          temperature: 0.3,
-          max_tokens: 500
+          system: `You are a helpful AI assistant. Be conversational and natural.
+
+Return ONLY valid JSON:
+{
+  "success": true,
+  "message": "Your response",
+  "actions": []
+}
+
+Just respond naturally without prefixes like "I've analyzed" or "Here's what I can do".`,
+          stream: false,
+          enable_tools: false
         })
       })
       
@@ -281,15 +272,52 @@ Example response:
       }
       
       const data = await response.json()
-      console.log('OpenAI response data:', data)
+      console.log('Backend proxy response data:', data)
       
       try {
-        const content = data.choices[0].message.content
-        console.log('OpenAI response content:', content)
-        const parsed = JSON.parse(content)
-        return parsed
+        // The backend proxy returns the OpenAI response directly
+        if (data.choices && data.choices[0]) {
+          const content = data.choices[0].message.content
+          console.log('AI response content:', content)
+          
+          // Try to parse as JSON if it looks like JSON
+          if (content.trim().startsWith('{')) {
+            try {
+              const parsed = JSON.parse(content)
+              return parsed
+            } catch {
+              // If parsing fails, return a formatted response
+              return {
+                success: true,
+                message: content,
+                actions: []
+              }
+            }
+          } else {
+            // Plain text response
+            return {
+              success: true,
+              message: content,
+              actions: []
+            }
+          }
+        } else if (data.error) {
+          // Handle error from backend
+          console.error('Backend returned error:', data.error)
+          return {
+            success: false,
+            message: data.error
+          }
+        } else {
+          // Unexpected response format
+          console.error('Unexpected response format:', data)
+          return {
+            success: false,
+            message: 'Unexpected response from AI service'
+          }
+        }
       } catch (error) {
-        console.error('Failed to parse OpenAI response:', data, error)
+        console.error('Failed to process AI response:', data, error)
         return {
           success: false,
           message: 'I had trouble understanding your request. Could you try rephrasing it?'

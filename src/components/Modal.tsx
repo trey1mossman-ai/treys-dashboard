@@ -43,10 +43,10 @@ export function Modal({
   if (!isOpen) return null
   
   const sizeClasses = {
-    sm: 'max-w-md',
-    md: 'max-w-lg',
-    lg: 'max-w-2xl',
-    xl: 'max-w-4xl'
+    sm: 'max-w-[95vw] md:max-w-md',
+    md: 'max-w-[95vw] md:max-w-lg',
+    lg: 'max-w-[95vw] md:max-w-2xl',
+    xl: 'max-w-[95vw] md:max-w-4xl'
   }
   
   return (
@@ -56,26 +56,26 @@ export function Modal({
         onClick={onClose}
       />
       
-      <div className="fixed inset-0 flex items-center justify-center p-4">
+      <div className="fixed inset-0 flex items-center justify-center p-4 md:p-8">
         <div className={cn(
           'relative w-full',
           sizeClasses[size],
           className
         )}>
-          <div className="card-base glow-soft p-0 overflow-hidden">
+          <div className="card-base glow-soft p-0 overflow-hidden max-h-[90vh] flex flex-col">
             {title && (
-              <div className="flex items-center justify-between p-6 border-b border-border">
-                <h2 className="text-xl font-semibold">{title}</h2>
+              <div className="flex items-center justify-between p-4 md:p-6 border-b border-border">
+                <h2 className="text-xl md:text-xl font-semibold pr-4">{title}</h2>
                 <button
                   onClick={onClose}
-                  className="p-1 rounded-lg hover:bg-muted/50 interactive"
+                  className="p-2 rounded-lg hover:bg-muted/50 interactive shrink-0"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
             )}
             
-            <div className="p-6 max-h-[70vh] overflow-y-auto">
+            <div className="p-4 md:p-6 max-h-[70vh] overflow-y-auto">
               {children}
             </div>
           </div>

@@ -1,0 +1,311 @@
+/* Mission Control Design System - Futuristic Ops Room */
+
+/* ===== COLOR TOKENS ===== */
+:root {
+  /* Core Colors */
+  --mc-bg-primary: #0a0e1a;
+  --mc-bg-secondary: #0f1729;
+  --mc-bg-gradient: linear-gradient(135deg, #0a0e1a 0%, #0f1729 100%);
+  
+  /* Accent Colors */
+  --mc-accent-cyan: #00d4ff;
+  --mc-accent-secondary: #06b6d4; /* Cyan only, no purple */
+  --mc-accent-amber: #f59e0b;
+  
+  /* Status Colors */
+  --mc-success: #10b981;
+  --mc-warning: #f59e0b;
+  --mc-danger: #ef4444;
+  --mc-info: #3b82f6;
+  
+  /* Text Colors */
+  --mc-text-primary: #f0f4ff;
+  --mc-text-secondary: #94a3b8;
+  --mc-text-muted: #64748b;
+  
+  /* Surface Colors */
+  --mc-surface: rgba(15, 23, 41, 0.6);
+  --mc-surface-elevated: rgba(30, 41, 59, 0.8);
+  --mc-border: rgba(148, 163, 184, 0.1);
+  --mc-border-active: rgba(0, 212, 255, 0.3);
+  
+  /* Glow Effects */
+  --mc-glow-cyan: 0 0 20px rgba(0, 212, 255, 0.15);
+  --mc-glow-cyan-intense: 0 0 40px rgba(0, 212, 255, 0.25);
+  --mc-glow-secondary: 0 0 20px rgba(6, 182, 212, 0.15);
+  
+  /* Timing */
+  --mc-transition-fast: 120ms;
+  --mc-transition-normal: 200ms;
+  --mc-transition-slow: 300ms;
+}
+
+/* ===== TYPOGRAPHY ===== */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: -0.011em;
+  color: var(--mc-text-primary);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  letter-spacing: -0.022em;
+  line-height: 1.2;
+}
+
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.text-base { font-size: 1rem; }
+.text-lg { font-size: 1.125rem; }
+.text-xl { font-size: 1.25rem; }
+.text-2xl { font-size: 1.5rem; }
+.text-3xl { font-size: 1.875rem; }
+
+/* ===== BASE COMPONENTS ===== */
+
+/* Cards */
+.mc-card {
+  background: var(--mc-surface);
+  border: 1px solid var(--mc-border);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+  transition: all var(--mc-transition-normal) ease-out;
+}
+
+.mc-card-interactive {
+  cursor: pointer;
+}
+
+.mc-card-interactive:hover {
+  border-color: var(--mc-border-active);
+  box-shadow: var(--mc-glow-cyan);
+  transform: translateY(-1px);
+}
+
+/* Buttons */
+.mc-button {
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all var(--mc-transition-fast) ease-out;
+  border: 1px solid transparent;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.mc-button-primary {
+  background: var(--mc-accent-cyan);
+  color: var(--mc-bg-primary);
+  border-color: var(--mc-accent-cyan);
+}
+
+.mc-button-primary:hover {
+  box-shadow: var(--mc-glow-cyan);
+  transform: scale(1.02);
+}
+
+.mc-button-secondary {
+  background: transparent;
+  color: var(--mc-text-primary);
+  border-color: var(--mc-border);
+}
+
+.mc-button-secondary:hover {
+  border-color: var(--mc-accent-cyan);
+  box-shadow: var(--mc-glow-cyan);
+}
+
+/* Laser sweep effect */
+.mc-button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(0, 212, 255, 0.3), 
+    transparent
+  );
+  transition: left var(--mc-transition-normal) ease-out;
+}
+
+.mc-button:hover::after {
+  left: 100%;
+}
+
+/* Toggles */
+.mc-toggle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--mc-border);
+  background: transparent;
+  cursor: pointer;
+  transition: all var(--mc-transition-fast) ease-out;
+  position: relative;
+}
+
+.mc-toggle:hover {
+  border-color: var(--mc-accent-cyan);
+  box-shadow: var(--mc-glow-cyan);
+}
+
+.mc-toggle.checked {
+  background: var(--mc-accent-cyan);
+  border-color: var(--mc-accent-cyan);
+}
+
+.mc-toggle.checked::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  animation: ring-burst 300ms ease-out;
+}
+
+@keyframes ring-burst {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 0 12px rgba(0, 212, 255, 0);
+  }
+}
+
+/* Badges */
+.mc-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.mc-badge-supplements {
+  background: rgba(6, 182, 212, 0.2);
+  color: var(--mc-accent-cyan);
+}
+
+.mc-badge-workout {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--mc-success);
+}
+
+.mc-badge-task {
+  background: rgba(0, 212, 255, 0.2);
+  color: var(--mc-accent-cyan);
+}
+
+.mc-badge-calendar {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--mc-accent-amber);
+}
+
+/* Toasts */
+.mc-toast {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--mc-surface-elevated);
+  border: 1px solid var(--mc-border);
+  border-radius: 8px;
+  backdrop-filter: blur(12px);
+  animation: slide-in 200ms ease-out;
+  z-index: 9999;
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Wave Mark */
+.mc-wave {
+  position: absolute;
+  width: 200px;
+  height: 60px;
+  opacity: 0.3;
+  animation: wave-drift 8s ease-in-out infinite;
+}
+
+.mc-wave svg {
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes wave-drift {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Layout */
+.mc-container {
+  background: var(--mc-bg-gradient);
+  min-height: 100vh;
+  color: var(--mc-text-primary);
+}
+
+.mc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1fr;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+@media (max-width: 1024px) {
+  .mc-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Action Bar */
+.mc-action-bar {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--mc-surface);
+  border: 1px solid var(--mc-border);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+}
+
+@media (max-width: 768px) {
+  .mc-action-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-radius: 12px 12px 0 0;
+    z-index: 100;
+  }
+}

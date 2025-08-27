@@ -1,0 +1,141 @@
+/* Unified Hover Effects System */
+
+/* Base button styles */
+.button-base {
+  position: relative;
+  transition: all 0.2s ease;
+  border: 1px solid var(--border);
+}
+
+/* Consistent glow hover for ALL buttons */
+.button-base:hover,
+button:hover,
+.nav-item button:hover,
+[role="button"]:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--glow-weak);
+  border-color: var(--primary);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 212, 255, 0.1),
+    rgba(0, 212, 255, 0.05)
+  );
+}
+
+/* Active state */
+.button-base:active,
+button:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Navigation specific enhancement */
+.nav-item button {
+  border-radius: 12px;
+  padding: 10px 16px;
+  backdrop-filter: blur(10px);
+}
+
+.nav-item button.active {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 212, 255, 0.2),
+    rgba(0, 212, 255, 0.1)
+  );
+  box-shadow: var(--glow-weak);
+  border-color: var(--primary);
+}
+
+/* Jump to Now & Export buttons special treatment */
+.button-special {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 212, 255, 0.15),
+    rgba(0, 212, 255, 0.08)
+  );
+}
+
+.button-special:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 212, 255, 0.25),
+    rgba(0, 212, 255, 0.15)
+  );
+  box-shadow: var(--glow-strong);
+}
+
+/* Override component library defaults */
+button[class*="ghost"]:hover,
+button[class*="outline"]:hover,
+button[class*="default"]:hover {
+  background: rgba(15, 23, 42, 0.95) !important;
+  box-shadow: var(--glow-weak) !important;
+  border-color: var(--primary) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Light mode hover adjustments */
+.theme-light button:hover,
+.theme-light [role="button"]:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 188, 212, 0.1),
+    rgba(0, 188, 212, 0.05)
+  ) !important;
+  box-shadow: var(--glow-weak) !important;
+  border-color: var(--primary) !important;
+}
+
+/* Exciting theme hover adjustments */
+.theme-exciting button:hover,
+.theme-exciting [role="button"]:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(147, 51, 234, 0.15),
+    rgba(147, 51, 234, 0.08)
+  ) !important;
+  box-shadow: var(--glow-weak) !important;
+  border-color: var(--primary) !important;
+}
+
+/* Remove conflicting pseudo-elements */
+button::before,
+button::after,
+.button-responsive:before,
+.button-responsive:after,
+.laser-sweep:before,
+.laser-sweep:after,
+[class*="button"]::before,
+[class*="button"]::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* Ensure active state doesn't interfere */
+button:active,
+button[class*="ghost"]:active,
+button[class*="outline"]:active {
+  transform: translateY(0) scale(0.98) !important;
+}
+
+/* Override Tailwind and component library hover states */
+.hover\:bg-secondary:hover,
+.hover\:bg-primary\/90:hover,
+.hover\:bg-accent\/90:hover {
+  background: rgba(15, 23, 42, 0.95) !important;
+}
+
+/* Ensure maximum specificity wins */
+body button:hover,
+body .button-responsive:hover,
+body header button:hover,
+body nav button:hover,
+#root button:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 212, 255, 0.1),
+    rgba(0, 212, 255, 0.05)
+  ) !important;
+  box-shadow: var(--glow-weak) !important;
+  border-color: var(--primary) !important;
+  transform: translateY(-2px) !important;
+}

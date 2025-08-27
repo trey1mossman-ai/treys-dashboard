@@ -15,3 +15,19 @@ export function handleOptions(env: any): Response {
     headers: corsHeaders(env)
   });
 }
+
+export function jsonResponse(data: any, status: number = 200, env?: any): Response {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+
+  // Add CORS headers if env is provided
+  if (env) {
+    Object.assign(headers, corsHeaders(env));
+  }
+
+  return new Response(JSON.stringify(data), {
+    status,
+    headers
+  });
+}

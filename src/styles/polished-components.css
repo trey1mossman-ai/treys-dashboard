@@ -1,0 +1,421 @@
+/* Polished Component System - Refined Sizing & Reduced Redundancy */
+
+@layer components {
+  /* ===== TYPOGRAPHY POLISH ===== */
+  
+  /* Remove text shadows and glows from all text */
+  h1, h2, h3, h4, h5, h6, 
+  .text-glow-violet, .text-glow-cyan, .text-glow,
+  p, span, div, label {
+    text-shadow: none !important;
+    filter: none !important;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
+  }
+  
+  /* Polished headings with thin underlines */
+  .polished-h1 {
+    font-size: var(--font-h1);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+    border-bottom: 1px solid var(--accent-500);
+    padding-bottom: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+  
+  .polished-h2 {
+    font-size: var(--font-h2);
+    font-weight: var(--font-medium);
+    letter-spacing: 0.01em;
+    line-height: 1.3;
+  }
+  
+  /* Tabular numbers for data display */
+  .tabular-nums {
+    font-family: var(--font-tabular);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+  
+  .tabular-value::after {
+    content: attr(data-unit);
+    opacity: 0.7;
+    font-size: 0.85em;
+    margin-left: 0.25em;
+  }
+
+  /* ===== PILL COMPONENTS (Consistent Height & Spacing) ===== */
+  
+  .pill-base {
+    padding: var(--padding-pill);
+    border-radius: var(--radius-button);
+    font-size: var(--font-small);
+    font-weight: var(--font-medium);
+    letter-spacing: 0.1px; /* Increased clarity */
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    height: auto;
+    min-height: 2.25rem; /* Consistent height across all pills */
+    line-height: 1.2;
+    background: var(--panel-bg);
+    border: 1px solid var(--border-default);
+    transition: var(--transition-normal);
+  }
+  
+  .pill-next {
+    @apply pill-base;
+    background: linear-gradient(135deg, rgba(55, 230, 227, 0.1), rgba(55, 230, 227, 0.05));
+    border-color: rgba(55, 230, 227, 0.3);
+    color: var(--accent-400);
+  }
+  
+  .pill-priority {
+    @apply pill-base;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+    border-color: rgba(245, 158, 11, 0.3);
+    color: var(--warn-500);
+  }
+  
+  .pill-percentage {
+    @apply pill-base;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+    border-color: rgba(16, 185, 129, 0.3);
+    color: var(--success-500);
+  }
+  
+  /* ===== BUTTON POLISH (Reduced Height) ===== */
+  
+  .button-base {
+    padding: var(--padding-button);
+    border-radius: var(--radius-button);
+    font-size: var(--font-body);
+    font-weight: var(--font-medium);
+    letter-spacing: 0.2px; /* Enhanced readability */
+    transition: var(--transition-normal);
+    border: 1px solid transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    text-decoration: none;
+    position: relative;
+    outline: none;
+  }
+  
+  .button-nav {
+    @apply button-base;
+    padding: var(--padding-nav-button); /* Reduced 10-15% */
+    background: var(--panel-bg);
+    border-color: var(--border-default);
+    color: var(--text-secondary);
+  }
+  
+  .button-nav:hover,
+  .button-nav:focus-visible {
+    background: var(--panel-bg-alt);
+    border-color: var(--accent-400);
+    box-shadow: var(--glow-weak);
+  }
+  
+  .button-nav.active {
+    background: linear-gradient(135deg, rgba(55, 230, 227, 0.15), rgba(55, 230, 227, 0.1));
+    border-color: var(--accent-500);
+    color: var(--accent-400);
+  }
+  
+  /* ===== PROGRESS BARS (Thin 4-6px) ===== */
+  
+  .progress-base {
+    width: 100%;
+    height: var(--progress-thickness);
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: calc(var(--progress-thickness) / 2);
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    border-radius: inherit;
+    transition: width var(--transition-normal);
+    background: linear-gradient(90deg, var(--accent-500), var(--accent-400));
+  }
+  
+  .progress-fill.success {
+    background: linear-gradient(90deg, var(--success-500), var(--success-500));
+  }
+  
+  .progress-fill.warning {
+    background: linear-gradient(90deg, var(--warn-500), var(--warn-500));
+  }
+  
+  /* No glow on progress bars - bars should never outglow text */
+  .progress-base,
+  .progress-fill {
+    box-shadow: none !important;
+  }
+
+  /* ===== CARD SYSTEM (Fluid Padding) ===== */
+  
+  .card-polished {
+    padding: var(--padding-card);
+    background: var(--panel-bg);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-card);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-4);
+  }
+  
+  .card-header h2 {
+    @apply polished-h2;
+    margin: 0;
+  }
+  
+  /* Remove duplicate headings */
+  .card-polished .duplicate-heading {
+    display: none;
+  }
+
+  /* ===== LAYOUT GRID (Mobile-First) ===== */
+  
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--grid-gap);
+    width: 100%;
+    max-width: var(--container-max);
+    margin: 0 auto;
+    padding: var(--space-4);
+  }
+  
+  @media (min-width: 768px) {
+    .dashboard-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (min-width: 1200px) {
+    .dashboard-grid {
+      grid-template-columns: 1fr 1fr 0.8fr; /* today | preview | meta */
+    }
+  }
+
+  /* ===== INTERACTIVE STATES (Only on Actionable Items) ===== */
+  
+  .interactive-row {
+    transition: var(--transition-normal);
+    border-radius: var(--radius-small);
+    position: relative;
+    cursor: pointer;
+  }
+  
+  .interactive-row:hover {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: var(--accent-500);
+  }
+  
+  .interactive-row:hover::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      var(--accent-500) 20%, 
+      var(--accent-500) 80%, 
+      transparent 100%
+    );
+    opacity: 0;
+    animation: lightsaber-sweep 0.4s ease-out forwards;
+  }
+  
+  /* Remove glow from static elements */
+  .no-glow,
+  .static-text,
+  h1:not(.interactive), 
+  h2:not(.interactive), 
+  h3:not(.interactive),
+  p:not(.interactive),
+  span:not(.interactive) {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* ===== INVENTORY OPTIMIZATION ===== */
+  
+  .inventory-alert-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3);
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: var(--radius-medium);
+    margin-bottom: var(--space-2);
+  }
+  
+  .inventory-alert-text {
+    color: var(--warn-500);
+    font-weight: var(--font-medium);
+  }
+  
+  .inventory-cta {
+    @apply button-base;
+    padding: var(--space-2) var(--space-3);
+    background: var(--warn-500);
+    color: white;
+    font-size: var(--font-small);
+    border-radius: var(--radius-small);
+  }
+  
+  .inventory-status-ok {
+    color: var(--text-muted);
+    font-size: var(--font-small);
+    opacity: 0.7;
+  }
+
+  /* ===== NAVIGATION (Mobile Scroll) ===== */
+  
+  .nav-horizontal {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    position: relative;
+  }
+  
+  .nav-horizontal::before,
+  .nav-horizontal::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 20px;
+    pointer-events: none;
+    z-index: 2;
+  }
+  
+  .nav-horizontal::before {
+    left: 0;
+    background: linear-gradient(90deg, var(--bg-0), transparent);
+  }
+  
+  .nav-horizontal::after {
+    right: 0;
+    background: linear-gradient(270deg, var(--bg-0), transparent);
+  }
+  
+  .nav-item {
+    scroll-snap-align: center;
+    white-space: nowrap;
+    flex-shrink: 0;
+    position: relative;
+  }
+  
+  .nav-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--accent-500);
+    border-radius: 1px;
+  }
+
+  /* ===== TELEMETRY STYLING ===== */
+  
+  .telemetry-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  .telemetry-row:last-child {
+    border-bottom: none;
+  }
+  
+  .telemetry-label {
+    font-size: var(--font-small);
+    color: var(--text-muted);
+    flex: 1;
+  }
+  
+  .telemetry-value {
+    @apply tabular-nums;
+    font-size: var(--font-small);
+    color: var(--text-primary);
+    font-weight: var(--font-medium);
+  }
+
+  /* ===== ACCESSIBILITY & FOCUS ===== */
+  
+  .focus-visible {
+    outline: 2px solid var(--accent-400);
+    outline-offset: 2px;
+  }
+  
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+}
+
+/* ===== ANIMATIONS ===== */
+
+@keyframes lightsaber-sweep {
+  0% {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
+
+/* ===== REDUCED MOTION ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  .interactive-row::after {
+    animation: none !important;
+  }
+  
+  .progress-fill,
+  .button-base,
+  .pill-base,
+  .interactive-row {
+    transition: none !important;
+  }
+  
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,278 @@
+/* Color Audit and Fixes - Enhanced Readability */
+
+/* 
+AUDIT FINDINGS & FIXES:
+1. White text on white/light backgrounds - CRITICAL
+2. Light text on light backgrounds - HIGH
+3. Same color overlaps - MEDIUM 
+4. Insufficient contrast ratios - HIGH
+*/
+
+/* ===== CRITICAL FIXES ===== */
+
+/* Fix white text on light backgrounds */
+.input-enhanced {
+  color: #1e293b !important; /* Dark text for light input fields */
+  background: rgba(248, 250, 252, 0.95) !important; /* Light gray background */
+  border: 2px solid var(--border-default) !important;
+}
+
+.input-enhanced::placeholder {
+  color: #64748b !important; /* Medium gray for placeholders */
+  opacity: 1 !important;
+}
+
+.input-enhanced:focus {
+  border-color: var(--accent-500) !important;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2) !important;
+  outline: none !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+}
+
+/* Fix button text visibility */
+.button-responsive {
+  color: var(--text-primary) !important;
+  background: rgba(30, 41, 59, 0.8) !important; /* Dark background for contrast */
+  border: 2px solid var(--border-default) !important;
+}
+
+.button-responsive:hover {
+  background: rgba(30, 41, 59, 0.9) !important;
+  border-color: var(--accent-500) !important;
+}
+
+.button-high-contrast {
+  background: var(--accent-500) !important;
+  color: #ffffff !important; /* Ensure white text on blue */
+  border: 2px solid var(--accent-400) !important;
+  font-weight: 600 !important;
+}
+
+.button-high-contrast:hover {
+  background: var(--accent-600) !important;
+  border-color: var(--accent-500) !important;
+  color: #ffffff !important;
+}
+
+/* Fix card backgrounds for better text contrast */
+.card-enhanced {
+  background: rgba(15, 23, 42, 0.95) !important; /* Darker background */
+  border: 2px solid var(--border-default) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Fix overlapping colors in status indicators */
+.status-indicator {
+  background: rgba(15, 23, 42, 0.9) !important;
+  border: 2px solid currentColor !important;
+  padding: var(--space-1) var(--space-2) !important;
+  border-radius: var(--radius-small) !important;
+}
+
+/* Fix navigation active states */
+.nav-item.active,
+.nav-item:hover {
+  background: rgba(96, 165, 250, 0.2) !important;
+  border: 2px solid var(--accent-500) !important;
+  color: var(--text-primary) !important;
+}
+
+/* ===== HIGH PRIORITY FIXES ===== */
+
+/* Ensure all text has minimum contrast */
+.enhanced-text {
+  color: var(--text-primary) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important; /* Subtle shadow for readability */
+}
+
+.enhanced-text-secondary {
+  color: var(--text-secondary) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Fix muted text visibility */
+.text-muted,
+.text-text-muted {
+  color: #94a3b8 !important; /* Lighter than current but still readable */
+}
+
+/* Fix progress bars */
+.progress-bar {
+  background: rgba(30, 41, 59, 0.8) !important;
+  border: 1px solid var(--border-default) !important;
+}
+
+.progress-bar-fill {
+  background: var(--accent-500) !important;
+  box-shadow: 0 0 10px rgba(96, 165, 250, 0.3) !important;
+}
+
+/* ===== SPECIFIC COMPONENT FIXES ===== */
+
+/* Mission Control info bar fixes */
+.info-pill {
+  background: rgba(15, 23, 42, 0.9) !important;
+  border: 2px solid currentColor !important;
+  color: var(--text-primary) !important;
+  padding: var(--space-2) var(--space-3) !important;
+}
+
+/* Schedule page time slot fixes */
+.time-slot {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border: 2px solid var(--border-default) !important;
+  color: var(--text-primary) !important;
+}
+
+.time-slot.current {
+  background: rgba(96, 165, 250, 0.2) !important;
+  border: 3px solid var(--accent-500) !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 0 20px rgba(96, 165, 250, 0.3) !important;
+}
+
+/* Fitness page exercise/meal items */
+.exercise-item,
+.meal-item {
+  background: rgba(15, 23, 42, 0.9) !important;
+  border: 2px solid var(--border-default) !important;
+  color: var(--text-primary) !important;
+}
+
+.exercise-item.completed {
+  background: rgba(16, 185, 129, 0.15) !important;
+  border: 2px solid var(--success-500) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Settings page API key fields */
+.api-config-row {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border: 2px solid var(--border-default) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Automation builder fixes */
+.automation-card {
+  background: rgba(15, 23, 42, 0.9) !important;
+  border: 2px solid var(--border-default) !important;
+  color: var(--text-primary) !important;
+}
+
+.automation-card.enabled {
+  border: 2px solid var(--accent-500) !important;
+  box-shadow: 0 0 20px rgba(96, 165, 250, 0.2) !important;
+}
+
+/* ===== INTERACTIVE STATE FIXES ===== */
+
+/* Hover states with better visibility */
+.interactive-element:hover {
+  background: rgba(30, 41, 59, 0.9) !important;
+  border-color: var(--accent-500) !important;
+  color: var(--text-primary) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 20px rgba(96, 165, 250, 0.2) !important;
+}
+
+/* Focus states for accessibility */
+.focusable:focus,
+.focusable:focus-visible {
+  outline: 3px solid var(--accent-400) !important;
+  outline-offset: 2px !important;
+  border-color: var(--accent-500) !important;
+  background: rgba(96, 165, 250, 0.1) !important;
+}
+
+/* ===== LIVE CLOCK FIXES ===== */
+.live-clock {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border: 2px solid var(--accent-500) !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 0 20px rgba(96, 165, 250, 0.3) !important;
+}
+
+/* ===== MOBILE SPECIFIC FIXES ===== */
+@media (max-width: 768px) {
+  /* Increase touch target sizes */
+  .button-responsive,
+  .button-high-contrast {
+    min-height: 44px !important;
+    min-width: 44px !important;
+    padding: var(--space-3) var(--space-4) !important;
+  }
+  
+  /* Improve mobile text contrast */
+  .card-enhanced {
+    background: rgba(15, 23, 42, 0.98) !important;
+  }
+  
+  .input-enhanced {
+    background: rgba(255, 255, 255, 0.98) !important;
+    font-size: 16px !important; /* Prevent zoom on iOS */
+  }
+}
+
+/* ===== DARK MODE CONSISTENCY ===== */
+@media (prefers-color-scheme: dark) {
+  .input-enhanced {
+    background: rgba(30, 41, 59, 0.95) !important;
+    color: var(--text-primary) !important;
+    border: 2px solid var(--border-default) !important;
+  }
+  
+  .input-enhanced::placeholder {
+    color: var(--text-muted) !important;
+  }
+}
+
+/* ===== ACCESSIBILITY ENHANCEMENTS ===== */
+@media (prefers-contrast: high) {
+  .card-enhanced,
+  .button-responsive,
+  .button-high-contrast,
+  .input-enhanced {
+    border-width: 3px !important;
+  }
+  
+  .text-muted {
+    color: var(--text-secondary) !important;
+  }
+}
+
+/* ===== STATUS INDICATOR FIXES ===== */
+.status-dot {
+  width: 12px !important;
+  height: 12px !important;
+  border: 2px solid rgba(15, 23, 42, 0.9) !important; /* Dark border for visibility */
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2) !important;
+}
+
+.status-success { background: var(--success-500) !important; }
+.status-warning { background: var(--warn-500) !important; }
+.status-error { background: var(--error-500) !important; }
+.status-info { background: var(--accent-500) !important; }
+
+/* ===== FINAL OVERRIDES FOR CRITICAL ISSUES ===== */
+
+/* Ensure no white-on-white anywhere */
+* {
+  /* Reset any problematic inherited colors */
+}
+
+/* Force proper contrast on all text elements */
+h1, h2, h3, h4, h5, h6,
+p, span, div, button, input, textarea {
+  color: inherit !important;
+}
+
+/* Override any remaining light-on-light issues */
+.light-background {
+  background: rgba(15, 23, 42, 0.9) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-background {
+  background: rgba(248, 250, 252, 0.95) !important;
+  color: #1e293b !important;
+}

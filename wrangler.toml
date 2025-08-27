@@ -32,6 +32,20 @@ id = "e7c1a4642389481da60e82a1e03d503b"
 
 # Environment variables (non-sensitive)
 [vars]
+DASHBOARD_BASE_URL = "https://ailifeassistanttm.com"
+TZ = "America/Denver"
+NODE_ENV = "production"
+PORT = "8080"
+TRUST_PROXY = "1"
+EVENTS_ENABLED = "true"
+EVENTS_KEEPALIVE_MS = "15000"
+CSP_ENABLED = "true"
+HSTS_MAXAGE = "31536000"
+BODY_LIMIT_BYTES = "524288"
+SUPPLEMENTS_SOURCE = "sheet"
+WORKOUT_SOURCE = "trainer"
+
+# Legacy variables (maintained for compatibility)
 VITE_PUBLIC_ORIGIN = "https://agenda-dashboard.pages.dev"
 PROVIDER = "openai"
 OPENAI_BASE_URL = "https://api.openai.com/v1"
@@ -52,8 +66,20 @@ port = 8788
 local_protocol = "http"
 
 # Add your secrets via CLI (DO NOT put them in this file):
-# wrangler secret put N8N_BASE_URL
-# wrangler secret put N8N_TOKEN
+# Required for machine auth:
+# wrangler secret put CF_ACCESS_CLIENT_ID
+# wrangler secret put CF_ACCESS_CLIENT_SECRET  
+# wrangler secret put DASHBOARD_HMAC_SECRET
+
+# Optional for data sources:
+# wrangler secret put SUPPLEMENTS_SHEET_ID
+# wrangler secret put SUPPLEMENTS_SHEET_RANGE  
+# wrangler secret put WORKOUT_SHEET_ID
+# wrangler secret put WORKOUT_SHEET_RANGE
+# wrangler secret put TRAINER_API_URL
+# wrangler secret put TRAINER_API_KEY
+
+# Legacy secrets (maintained for compatibility):
 # wrangler secret put OPENAI_API_KEY
 # wrangler secret put ANTHROPIC_API_KEY
 # wrangler secret put SENDGRID_API_KEY
@@ -61,6 +87,3 @@ local_protocol = "http"
 # wrangler secret put TWILIO_AUTH_TOKEN
 # wrangler secret put TWILIO_PHONE_NUMBER
 # wrangler secret put DEFAULT_FROM_EMAIL
-# wrangler secret put N8N_API_KEY
-# wrangler secret put PINECONE_API_KEY
-# wrangler secret put PINECONE_ENV

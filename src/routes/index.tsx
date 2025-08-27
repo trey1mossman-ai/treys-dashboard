@@ -2,13 +2,24 @@ import { lazy, Suspense } from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { Loading } from '@/components/Loading'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { MobileDetector } from '@/components/MobileDetector'
 import App from '@/App'
+// Keep simple app as fallback option
+// import App from '@/App-simple'
+// import App from '@/App-enhanced'
 
 // Lazy load all route components for better performance
-const Dashboard = lazy(() => import('@/pages/Dashboard').then(m => ({ default: m.Dashboard })))
+// Dashboard is now merged into Mission Control
 const Workflows = lazy(() => import('@/pages/Workflows').then(m => ({ default: m.Workflows })))
 const Fitness = lazy(() => import('@/pages/Fitness').then(m => ({ default: m.Fitness })))
 const Settings = lazy(() => import('@/pages/Settings').then(m => ({ default: m.Settings })))
+const Schedule = lazy(() => import('@/pages/Schedule'))
+const MissionControl = lazy(() => import('@/pages/MissionControl'))
+const MissionControlTest = lazy(() => import('@/pages/MissionControlTest'))
+const MissionControlManage = lazy(() => import('@/pages/MissionControlManage'))
+const MissionControlSettings = lazy(() => import('@/pages/MissionControlSettings'))
+const TestPage = lazy(() => import('@/pages/TestPage'))
+const SimpleDashboard = lazy(() => import('@/pages/SimpleDashboard'))
 
 // Loading wrapper for lazy loaded components with error boundary
 function LazyRoute({ Component }: { Component: React.LazyExoticComponent<React.ComponentType> }) {
@@ -43,7 +54,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <LazyRoute Component={Dashboard} />
+        element: <LazyRoute Component={SimpleDashboard} /> // Simple mobile-first dashboard
       },
       {
         path: 'workflows',
@@ -54,8 +65,28 @@ const router = createBrowserRouter([
         element: <LazyRoute Component={Fitness} />
       },
       {
+        path: 'schedule',
+        element: <LazyRoute Component={Schedule} />
+      },
+      {
         path: 'settings',
         element: <LazyRoute Component={Settings} />
+      },
+      {
+        path: 'mission-test',
+        element: <LazyRoute Component={MissionControlTest} />
+      },
+      {
+        path: 'mission-control',
+        element: <LazyRoute Component={MissionControl} />
+      },
+      {
+        path: 'mission-control/manage',
+        element: <LazyRoute Component={MissionControlManage} />
+      },
+      {
+        path: 'mission-control/settings',
+        element: <LazyRoute Component={MissionControlSettings} />
       }
     ]
   }
@@ -67,5 +98,7 @@ const router = createBrowserRouter([
 })
 
 export function Routes() {
+  // Log current route for debugging
+  console.log('Routes initialized, available paths:', router.routes[0].children?.map(r => r.path));
   return <RouterProvider router={router} />
 }

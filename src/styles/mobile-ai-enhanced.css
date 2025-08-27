@@ -1,0 +1,107 @@
+/* Enhanced Mobile AI Button Positioning */
+
+/* AI Dock Button - Always bottom right, properly positioned */
+.ai-dock-button {
+  position: fixed !important;
+  bottom: calc(20px + env(safe-area-inset-bottom)) !important;
+  right: 20px !important;
+  z-index: 9999 !important;
+  width: 56px !important;
+  height: 56px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: linear-gradient(135deg, #06b6d4, #0ea5e9) !important;
+  box-shadow: 0 4px 20px rgba(6, 182, 212, 0.4) !important;
+  transition: all 0.3s ease;
+  top: auto !important;
+  left: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+}
+
+/* Ensure it stays in place during theme changes */
+.theme-dark .ai-dock-button,
+.theme-light .ai-dock-button,
+.theme-exciting .ai-dock-button {
+  position: fixed !important;
+  bottom: calc(20px + env(safe-area-inset-bottom)) !important;
+  right: 20px !important;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+  .ai-dock-button {
+    bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+    width: 48px !important;
+    height: 48px !important;
+    position: fixed !important;
+    right: 20px !important;
+    z-index: 9999 !important;
+  }
+  
+  /* When drawer is open */
+  .ai-drawer-open .ai-dock-button {
+    display: none;
+  }
+  
+  /* AI Drawer mobile optimization */
+  .ai-drawer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 85vh;
+    border-radius: 20px 20px 0 0;
+    width: 100% !important;
+  }
+}
+
+/* Touch feedback */
+.ai-dock-button:active {
+  transform: scale(0.95);
+}
+
+/* Pulse animation for attention */
+@keyframes ai-pulse {
+  0%, 100% { box-shadow: 0 4px 20px rgba(6, 182, 212, 0.4); }
+  50% { box-shadow: 0 4px 30px rgba(6, 182, 212, 0.6); }
+}
+
+.ai-dock-button {
+  animation: ai-pulse 2s infinite;
+}
+
+/* Fix for AssistantDock component */
+.assistant-dock-button {
+  position: fixed !important;
+  bottom: calc(20px + env(safe-area-inset-bottom)) !important;
+  right: 20px !important;
+  z-index: 9999 !important;
+  top: auto !important;
+  left: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+@media (max-width: 768px) {
+  .assistant-dock-button {
+    bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+    position: fixed !important;
+    right: 20px !important;
+    z-index: 9999 !important;
+  }
+}
+
+/* Extra protection against any movement */
+.ai-dock-button,
+.assistant-dock-button,
+button[aria-label="Open Assistant"] {
+  position: fixed !important;
+  right: 20px !important;
+  z-index: 9999 !important;
+  top: auto !important;
+  left: auto !important;
+}

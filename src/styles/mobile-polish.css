@@ -1,0 +1,326 @@
+/* Mobile Polish Improvements - Priority 4 Refinements */
+
+/* Safe area insets for notched devices */
+html {
+  /* Smooth scrolling on all platforms */
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+body {
+  /* Prevent horizontal overflow on all mobile devices */
+  overflow-x: hidden;
+  max-width: 100vw;
+  position: relative;
+  
+  /* iOS-specific overscroll behavior */
+  overscroll-behavior-y: contain;
+  
+  /* Prevent pull-to-refresh on PWA */
+  overscroll-behavior: none;
+}
+
+/* Safe area padding for notched devices */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-left {
+  padding-left: env(safe-area-inset-left);
+}
+
+.safe-right {
+  padding-right: env(safe-area-inset-right);
+}
+
+.safe-horizontal {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+/* Header adjustments for notched devices */
+.header-clean {
+  padding-top: calc(12px + env(safe-area-inset-top));
+}
+
+/* AI button safe area adjustments */
+.ai-dock-button,
+.assistant-dock-button {
+  bottom: calc(20px + env(safe-area-inset-bottom)) !important;
+  right: max(20px, env(safe-area-inset-right)) !important;
+}
+
+@media (max-width: 768px) {
+  .ai-dock-button,
+  .assistant-dock-button {
+    bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+    right: max(20px, env(safe-area-inset-right)) !important;
+  }
+}
+
+/* Prevent zoom on input focus across all devices */
+input[type="text"],
+input[type="email"],
+input[type="number"],
+input[type="password"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+textarea,
+select {
+  font-size: 16px !important;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* iOS-specific input improvements */
+@supports (-webkit-touch-callout: none) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 0;
+  }
+  
+  /* Prevent double-tap zoom */
+  * {
+    touch-action: manipulation;
+  }
+  
+  /* Allow pinch-zoom only on specific elements */
+  .zoomable {
+    touch-action: pinch-zoom;
+  }
+}
+
+/* Smooth momentum scrolling for scrollable containers */
+.scroll-container,
+.overflow-y-auto,
+.overflow-y-scroll,
+.agenda-container,
+.schedule-container {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  scroll-behavior: smooth;
+  
+  /* Create scroll context for iOS */
+  transform: translateZ(0);
+  will-change: scroll-position;
+}
+
+/* Prevent text selection on interactive elements */
+button,
+a,
+.nav-button,
+.touch-button,
+.interactive {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Allow text selection where needed */
+p,
+span,
+div[contenteditable],
+input,
+textarea,
+.selectable {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Touch target optimization (44x44px minimum) */
+.touch-target,
+button,
+a,
+.nav-button,
+.interactive {
+  position: relative;
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Extend touch area without changing visual size */
+.touch-target::after,
+button::after,
+a::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  pointer-events: none;
+}
+
+/* Mobile keyboard handling */
+.keyboard-open {
+  /* Adjust layout when keyboard is open */
+  padding-bottom: 0;
+}
+
+.keyboard-open .ai-dock-button,
+.keyboard-open .assistant-dock-button {
+  /* Hide AI button when keyboard is open to prevent overlap */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* Landscape mode optimizations */
+@media (orientation: landscape) and (max-height: 500px) {
+  .header-clean {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  
+  .nav-button {
+    min-height: 36px;
+    padding: 8px 12px;
+  }
+  
+  .container {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+}
+
+/* High refresh rate display optimization */
+@media (prefers-reduced-motion: no-preference) {
+  * {
+    /* Optimize for 120Hz displays */
+    animation-duration: calc(var(--duration, 1s) * 0.8);
+  }
+  
+  .transition-all {
+    transition-duration: 120ms;
+  }
+  
+  .motion-safe {
+    transition-duration: 100ms;
+  }
+}
+
+/* Pull-to-refresh prevention for PWA */
+body.pwa-mode {
+  overscroll-behavior-y: none;
+  position: fixed;
+  width: 100%;
+  height: 100vh;
+}
+
+.pwa-mode .main-content {
+  overflow-y: auto;
+  height: 100vh;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Improved touch feedback */
+.touch-feedback {
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+.touch-feedback:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+/* Haptic feedback trigger class */
+.haptic-light:active,
+.haptic-medium:active,
+.haptic-heavy:active {
+  /* Triggers can be handled via JS */
+}
+
+/* Bottom navigation safe area for mobile */
+.mobile-nav-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--background);
+  border-top: 1px solid var(--border);
+  z-index: 50;
+}
+
+/* Content adjustment for bottom nav */
+.has-bottom-nav {
+  padding-bottom: calc(60px + env(safe-area-inset-bottom));
+}
+
+/* Swipe gesture indicators */
+.swipeable {
+  touch-action: pan-y;
+}
+
+.swipeable-horizontal {
+  touch-action: pan-x;
+}
+
+/* Loading state optimization for slow networks */
+.skeleton-loader {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 0%,
+    var(--muted-foreground) 50%,
+    var(--muted) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-wave 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-wave {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Improved focus states for mobile */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Remove focus styles for touch interactions */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Performance optimizations */
+.hardware-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Reduce animations for low-power mode */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

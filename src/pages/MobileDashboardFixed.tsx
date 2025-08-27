@@ -6,11 +6,15 @@ import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { useToast } from '@/hooks/use-toast';
 import { SettingsModal } from '@/components/SettingsModal';
 import { AIGenerateModal, UndoToast } from '@/components/AIGenerateModal';
+import { EmailWidget } from '@/components/EmailWidget';
+import { CalendarWidget } from '@/components/CalendarWidget';
 import type { AgendaItem, TodoItem, FoodItem, SupplementItem } from '@/types/daily';
 
 // Import design tokens and aesthetic enhancements
 import '../styles/design-tokens.css';
 import '../styles/aesthetic-enhancements.css';
+import '../styles/responsive-system.css';
+import '../styles/radical-mobile-fix.css';
 
 // Smart defaults for offline mode
 const getSmartAgendaDefaults = (): AgendaItem[] => [
@@ -383,22 +387,54 @@ export function MobileDashboardFixed() {
 
   return (
     <div className="min-h-screen cyberpunk-grid" style={{ backgroundColor: 'var(--color-bg)' }}>
-      {/* Sticky Header */}
+      {/* Sticky Header - Mobile First */}
       <header className="sticky top-0 z-50 glass-morphism-enhanced" style={{ 
-        height: 'var(--header-height)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+        height: 'clamp(56px, 12vw, 72px)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        width: '100%',
+        boxSizing: 'border-box'
       }}>
-        <div className="flex items-center justify-between px-4 h-full">
-          <span className="text-h2 wave-logo" style={{ fontWeight: 900 }}>
+        <div className="flex items-center justify-between h-full" style={{
+          padding: '0 clamp(12px, 3vw, 16px)',
+          width: '100%',
+          boxSizing: 'border-box',
+          maxWidth: '100vw'
+        }}>
+          <span className="wave-logo" style={{ 
+            fontWeight: 900,
+            fontSize: 'clamp(18px, 4vw, 24px)',
+            flex: '0 0 auto',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}>
             Agenda
           </span>
-          <span className="text-meta" style={{ color: 'var(--color-text-secondary)' }}>
+          <span className="text-meta" style={{ 
+            color: 'var(--color-text-secondary)',
+            fontSize: 'clamp(12px, 2.5vw, 14px)',
+            flex: '0 1 auto',
+            textAlign: 'center',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}>
             {today}
           </span>
           <button 
             onClick={() => setShowSettings(true)}
-            className="interactive p-2"
+            className="interactive"
             aria-label="Settings"
+            style={{
+              padding: 'clamp(8px, 2vw, 12px)',
+              fontSize: 'clamp(16px, 4vw, 20px)',
+              flex: '0 0 auto',
+              minWidth: '44px',
+              minHeight: '44px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
           >
             ⋯
           </button>
@@ -412,16 +448,28 @@ export function MobileDashboardFixed() {
         )}
       </header>
 
-      {/* Daily Chip */}
-      <div className="px-4 py-2">
+      {/* Daily Chip - Mobile First */}
+      <div style={{ 
+        padding: 'clamp(8px, 2vw, 12px) clamp(12px, 3vw, 16px)',
+        width: '100%',
+        boxSizing: 'border-box'
+      }}>
         <div className="pill inline-flex items-center gap-2" style={{
-          background: 'var(--color-violet-600)',
-          color: 'white'
+          background: 'var(--accent-500)',
+          color: 'white',
+          padding: 'clamp(6px, 1.5vw, 10px) clamp(10px, 2.5vw, 16px)',
+          fontSize: 'clamp(12px, 2.5vw, 14px)',
+          borderRadius: 'clamp(12px, 3vw, 20px)'
         }}>
-          <span className="text-meta font-semibold">Savage 7</span>
-          <span className="text-meta">{todayTheme}</span>
+          <span className="font-semibold">Savage 7</span>
+          <span>{todayTheme}</span>
         </div>
-        <p className="text-meta mt-1" style={{ color: 'var(--color-text-muted)' }}>
+        <p className="mt-1" style={{ 
+          color: 'var(--color-text-muted)',
+          fontSize: 'clamp(11px, 2.2vw, 13px)',
+          lineHeight: '1.4',
+          marginTop: 'clamp(6px, 1.5vw, 8px)'
+        }}>
           {todayTheme === 'Focus' && 'Deep work on your highest priority'}
           {todayTheme === 'Systems' && 'Optimize and document your processes'}
           {todayTheme === 'Growth' && 'Learn something new today'}
@@ -432,12 +480,19 @@ export function MobileDashboardFixed() {
         </p>
       </div>
 
-      {/* Main Content */}
-      <main className="px-4 pb-32 space-y-6">
+      {/* Email and Calendar Widgets - Ultra Simple Mobile */}
+      <div className="mobile-widgets-section">
+        <h2>📧 Emails & 📅 Calendar</h2>
+        <EmailWidget />
+        <CalendarWidget />
+      </div>
+
+      {/* Main Content - Responsive Grid */}
+      <main className="page-grid" style={{ paddingBottom: '80px' }}>
         {/* Agenda Section */}
-        <section className="card-stack section-violet neon-card">
+        <section className="card-responsive">
           <div className="card-header">
-            <h2 className="text-h2" style={{ color: 'var(--color-violet-600)' }}>
+            <h2 className="text-h2" style={{ color: 'var(--accent-500)' }}>
               Agenda
             </h2>
             <div className="flex items-center gap-2">
@@ -466,7 +521,7 @@ export function MobileDashboardFixed() {
             </div>
           </div>
           
-          <div className="card-accent-stripe" style={{ background: 'var(--color-violet-600)' }} />
+          <div className="card-accent-stripe" style={{ background: 'var(--accent-500)' }} />
           
           <div className="card-body">
             {/* Quick Add */}
@@ -558,7 +613,7 @@ export function MobileDashboardFixed() {
                       value={item.startTime}
                       onChange={(e) => updateAgendaItem(item.id, { startTime: e.target.value })}
                       className="bg-transparent text-meta"
-                      style={{ color: 'var(--color-violet-600)' }}
+                      style={{ color: 'var(--accent-500)' }}
                     />
                     <span>–</span>
                     <input
@@ -566,7 +621,7 @@ export function MobileDashboardFixed() {
                       value={item.endTime}
                       onChange={(e) => updateAgendaItem(item.id, { endTime: e.target.value })}
                       className="bg-transparent text-meta"
-                      style={{ color: 'var(--color-violet-600)' }}
+                      style={{ color: 'var(--accent-500)' }}
                     />
                     {item.id === currentBlock?.id && (
                       <span className="now-pill">Now</span>
@@ -949,7 +1004,7 @@ export function MobileDashboardFixed() {
       <nav className="bottom-nav fixed bottom-0 left-0 right-0 z-40">
         <div className="flex items-center justify-around h-full">
           {[
-            { id: 'agenda', label: 'Agenda', icon: '📅', color: 'var(--color-violet-600)' },
+            { id: 'agenda', label: 'Agenda', icon: '📅', color: 'var(--accent-500)' },
             { id: 'todos', label: 'To-Do', icon: '✓', color: 'var(--color-amber-500)' },
             { id: 'food', label: 'Food', icon: '🍽', color: 'var(--color-emerald-500)' },
             { id: 'supplements', label: 'Supps', icon: '💊', color: 'var(--color-sky-500)' }

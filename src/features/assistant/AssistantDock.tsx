@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { MessageSquare, X, Zap, Calendar, CheckSquare, Mail, Brain, Loader2, AlertCircle, CheckCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PrimaryButton } from '@/components/PrimaryButton'
-import { agentBridge } from '@/services/agentBridge'
+import { agentBridge } from '@/services/agentBridge-fixed'
 
 interface Message {
   id: string
@@ -20,6 +20,7 @@ export function AssistantDock() {
   const [messages, setMessages] = useState<Message[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const [isConfigured, setIsConfigured] = useState(true) // Always true now - backend handles it
+  const [sessionId, setSessionId] = useState<string>(() => crypto.randomUUID())
 
   useEffect(() => {
     // Initialize agent bridge
@@ -40,6 +41,16 @@ export function AssistantDock() {
       }])
     }
   }, [messages.length])
+  
+  // Lock body scroll on mobile when panel is open
+  useEffect(() => {
+    if (isOpen && window.innerWidth < 768) {
+      document.body.classList.add('ai-panel-open')
+      return () => {
+        document.body.classList.remove('ai-panel-open')
+      }
+    }
+  }, [isOpen])
 
   const tools = [
     { 
@@ -84,8 +95,8 @@ export function AssistantDock() {
     setIsProcessing(true)
     
     try {
-      // Process command through agent bridge
-      const result = await agentBridge.processNaturalCommand(userMessage.content)
+      // Process command through agent bridge with session ID
+      const result = await agentBridge.processNaturalCommand(userMessage.content, { sessionId })
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -133,8 +144,8 @@ export function AssistantDock() {
       setIsProcessing(true)
       
       try {
-        // Process command through agent bridge
-        const result = await agentBridge.processNaturalCommand(tool.command)
+        // Process command through agent bridge with session ID
+        const result = await agentBridge.processNaturalCommand(tool.command, { sessionId })
         
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
@@ -172,50 +183,59 @@ export function AssistantDock() {
 
   return (
     <>
-      {/* Floating Button */}
+      {/* Floating Button - Sticky and Always Visible on Mobile */}
       <button
         onClick={() => setIsOpen(true)}
+        onTouchStart={() => {
+          // Add haptic feedback for mobile
+          if ('vibrate' in navigator) {
+            navigator.vibrate(100);
+          }
+        }}
         className={cn(
-          "fixed bottom-6 right-6 z-50",
-          "w-14 h-14 rounded-full",
-          "bg-primary text-primary-foreground",
-          "flex items-center justify-center",
-          "shadow-lg elevation-high",
-          "transition-all duration-300",
-          "hover:scale-110 active:scale-95",
-          "glow-primary",
+          "ai-dock-button assistant-dock-button",
           isOpen && "scale-0 opacity-0 pointer-events-none"
         )}
         aria-label="Open Assistant"
       >
-        <MessageSquare className="w-6 h-6" />
+        <MessageSquare className="w-6 h-6 text-white" />
       </button>
 
       {/* Assistant Panel */}
       <div
         className={cn(
-          "fixed bottom-6 right-6 z-50",
-          "bg-card border border-border rounded-2xl",
+          "ai-drawer",
+          "fixed z-50",
+          // Mobile: Full screen with safe areas
+          "inset-0 md:bottom-6 md:right-6 md:inset-auto",
+          "bg-card border border-border",
+          "md:rounded-2xl", // Only rounded on desktop
           "shadow-2xl elevation-high",
           "transition-all duration-300 transform-gpu",
-          isOpen ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none",
-          isExpanded ? "w-[520px] h-[680px]" : "w-[420px] h-[580px]"
+          isOpen ? "translate-y-0 opacity-100 ai-drawer-open" : "translate-y-full opacity-0 pointer-events-none",
+          // Mobile: Full screen, Desktop: Fixed size
+          "w-full h-full md:w-[420px] md:h-[580px]",
+          // Safe area padding for mobile
+          "pt-safe pb-safe",
+          // Expanded state only on desktop
+          isExpanded && "md:w-[520px] md:h-[680px]"
         )}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border">
+        {/* Header with Safe Area */}
+        <div className="flex items-center justify-between p-4 md:p-4 pt-6 md:pt-4 border-b border-border">
           <div className="flex items-center gap-2">
             <div className={cn(
               "w-2 h-2 rounded-full",
               "bg-green-500 animate-pulse"
             )} />
-            <h3 className="font-semibold">AI Assistant</h3>
+            <h3 className="font-semibold text-lg md:text-base">AI Assistant</h3>
             {isProcessing && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
           </div>
           <div className="flex items-center gap-2">
+            {/* Hide expand button on mobile */}
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+              className="hidden md:block p-1.5 rounded-lg hover:bg-muted transition-colors"
               aria-label={isExpanded ? "Collapse" : "Expand"}
             >
               <svg
@@ -233,12 +253,13 @@ export function AssistantDock() {
                 )}
               </svg>
             </button>
+            {/* Bigger X button for mobile */}
             <button
               onClick={() => setIsOpen(false)}
-              className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+              className="p-2 md:p-1.5 rounded-lg hover:bg-muted transition-colors touch-button min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center"
               aria-label="Close Assistant"
             >
-              <X className="w-4 h-4" />
+              <X className="w-6 h-6 md:w-4 md:h-4" />
             </button>
           </div>
         </div>
@@ -249,30 +270,43 @@ export function AssistantDock() {
             <Zap className="w-4 h-4 text-accent" />
             <span className="text-xs font-medium text-muted-foreground">Quick Actions</span>
           </div>
-          <div className="grid grid-cols-4 gap-2">
+          {/* Mobile: 2 columns, Desktop: 4 columns */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {tools.map((tool) => (
               <button
                 key={tool.action}
                 onClick={() => handleToolClick(tool)}
+                onTouchStart={() => {
+                  // Add haptic feedback for mobile
+                  if ('vibrate' in navigator && !isProcessing) {
+                    navigator.vibrate(50);
+                  }
+                }}
                 disabled={isProcessing}
                 className={cn(
-                  "p-2 rounded-lg",
-                  "bg-muted/50 hover:bg-muted",
+                  "p-3 md:p-2 rounded-lg touch-button",
+                  "bg-muted/50 hover:bg-muted active:bg-muted",
                   "flex flex-col items-center gap-1",
                   "transition-all duration-150",
                   "hover:scale-105 active:scale-95",
+                  "min-h-[60px] md:min-h-auto",
                   isProcessing && "opacity-50 cursor-not-allowed"
                 )}
               >
-                <tool.icon className="w-4 h-4" />
-                <span className="text-xs">{tool.label}</span>
+                <tool.icon className="w-5 h-5 md:w-4 md:h-4" />
+                <span className="text-xs font-medium">{tool.label}</span>
               </button>
             ))}
           </div>
         </div>
 
         {/* Chat Area */}
-        <div className="flex-1 overflow-y-auto p-4" style={{ height: isExpanded ? '480px' : '360px' }}>
+        <div className="flex-1 overflow-y-auto p-4" style={{ 
+          // Desktop: Fixed height
+          height: isExpanded ? '480px' : '360px',
+          // Mobile: Fill available space minus header and input
+          maxHeight: 'calc(100vh - 280px)'
+        }}>
           <div className="space-y-3">
             {messages.map((msg) => (
               <div key={msg.id} className="flex gap-3">
@@ -335,7 +369,7 @@ export function AssistantDock() {
 
         {/* Input Area */}
         <div className="p-4 border-t border-border">
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-end">
             <input
               type="text"
               value={message}
@@ -344,20 +378,26 @@ export function AssistantDock() {
               placeholder="Type a command or question..."
               disabled={isProcessing}
               className={cn(
-                "flex-1 px-3 py-2 rounded-lg",
+                "flex-1 px-3 py-3 md:py-2 rounded-lg",
                 "bg-background border border-border",
                 "focus:outline-none focus:ring-2 focus:ring-primary/50",
                 "placeholder:text-muted-foreground",
-                "text-sm text-foreground",
+                "text-base md:text-sm text-foreground",
                 "disabled:opacity-50 disabled:cursor-not-allowed",
-                "min-h-[40px]"
+                "min-h-[48px] md:min-h-[40px]"
               )}
             />
             <PrimaryButton
               onClick={handleSend}
+              onTouchStart={() => {
+                // Add haptic feedback for mobile
+                if ('vibrate' in navigator && !isProcessing && message.trim()) {
+                  navigator.vibrate(75);
+                }
+              }}
               size="sm"
               variant="accent"
-              className="px-4"
+              className="px-4 md:px-4 h-[48px] md:h-auto touch-button"
               disabled={isProcessing || !message.trim()}
             >
               {isProcessing ? (
