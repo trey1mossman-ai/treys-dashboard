@@ -1,169 +1,202 @@
-/// <reference lib="webworker" />
-import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching'
-import { registerRoute, NavigationRoute } from 'workbox-routing'
-import { NetworkFirst, CacheFirst, StaleWhileRevalidate } from 'workbox-strategies'
-import { ExpirationPlugin } from 'workbox-expiration'
-import { CacheableResponsePlugin } from 'workbox-cacheable-response'
+/**
+ * Service Worker for LifeOS Dashboard
+ * Implements advanced caching strategies and offline support
+ */
 
-declare const self: ServiceWorkerGlobalScope
+const CACHE_NAME = 'lifeos-v1.0.0'
+const RUNTIME_CACHE = 'lifeos-runtime'
+const IMAGE_CACHE = 'lifeos-images'
 
-// Precache all static assets
-precacheAndRoute(self.__WB_MANIFEST)
+// Assets to cache immediately
+const PRECACHE_ASSETS = [
+  '/',
+  '/index.html',
+  '/manifest.webmanifest'
+]
 
-// Clean up old caches
-cleanupOutdatedCaches()
+// Cache strategies per route pattern
+const CACHE_STRATEGIES = {
+  // Cache first for static assets
+  cacheFirst: [
+    /\.(?:css|js|woff2?|ttf|otf|eot)$/,
+    /^https:\/\/fonts\.(?:googleapis|gstatic)\.com/
+  ],
+  
+  // Network first for API calls
+  networkFirst: [
+    /\/api\//,
+    /\/functions\//
+  ],
+  
+  // Stale while revalidate for images
+  staleWhileRevalidate: [
+    /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/
+  ]
+}
 
-// Cache the Google Fonts stylesheets with a stale-while-revalidate strategy.
-registerRoute(
-  ({ url }) => url.origin === 'https://fonts.googleapis.com',
-  new StaleWhileRevalidate({
-    cacheName: 'google-fonts-stylesheets',
-  })
-)
-
-// Cache the underlying font files with a cache-first strategy for 1 year.
-registerRoute(
-  ({ url }) => url.origin === 'https://fonts.gstatic.com',
-  new CacheFirst({
-    cacheName: 'google-fonts-webfonts',
-    plugins: [
-      new CacheableResponsePlugin({
-        statuses: [0, 200],
-      }),
-      new ExpirationPlugin({
-        maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
-        maxEntries: 30,
-      }),
-    ],
-  })
-)
-
-// Cache API responses with Network First strategy
-registerRoute(
-  ({ url }) => url.pathname.startsWith('/api/'),
-  new NetworkFirst({
-    cacheName: 'api-cache',
-    networkTimeoutSeconds: 3,
-    plugins: [
-      new ExpirationPlugin({
-        maxEntries: 50,
-        maxAgeSeconds: 5 * 60, // 5 minutes
-        purgeOnQuotaError: true,
-      }),
-      new CacheableResponsePlugin({
-        statuses: [0, 200],
-      }),
-    ],
-  })
-)
-
-// Cache images with Cache First strategy
-registerRoute(
-  ({ request }) => request.destination === 'image',
-  new CacheFirst({
-    cacheName: 'images',
-    plugins: [
-      new ExpirationPlugin({
-        maxEntries: 100,
-        maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
-        purgeOnQuotaError: true,
-      }),
-      new CacheableResponsePlugin({
-        statuses: [0, 200],
-      }),
-    ],
-  })
-)
-
-// Handle navigation requests with app shell
-const navigationRoute = new NavigationRoute(
-  new NetworkFirst({
-    cacheName: 'navigations',
-    networkTimeoutSeconds: 3,
-  })
-)
-
-registerRoute(navigationRoute)
-
-// Handle offline fallback
-self.addEventListener('fetch', (event: FetchEvent) => {
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request).catch(() => {
-        return caches.match('/offline.html') || 
-               new Response('Offline - Please check your connection', {
-                 status: 503,
-                 statusText: 'Service Unavailable',
-                 headers: new Headers({
-                   'Content-Type': 'text/plain',
-                 }),
-               })
+// Install event - precache assets
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('[SW] Precaching assets')
+        return cache.addAll(PRECACHE_ASSETS)
       })
-    )
-  }
+      .then(() => self.skipWaiting())
+      .catch(err => console.error('[SW] Precache failed:', err))
+  )
 })
 
-// Background sync for offline actions
-self.addEventListener('sync', (event: any) => {
-  if (event.tag === 'sync-agenda') {
-    event.waitUntil(syncAgenda())
-  }
+// Activate event - clean old caches
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys()
+      .then(cacheNames => {
+        return Promise.all(
+          cacheNames
+            .filter(name => name !== CACHE_NAME && name !== RUNTIME_CACHE && name !== IMAGE_CACHE)
+            .map(name => {
+              console.log('[SW] Deleting old cache:', name)
+              return caches.delete(name)
+            })
+        )
+      })
+      .then(() => self.clients.claim())
+  )
 })
 
-async function syncAgenda() {
-  try {
-    // Get cached agenda updates
-    const cache = await caches.open('agenda-sync')
-    const requests = await cache.keys()
+// Fetch event - implement caching strategies
+self.addEventListener('fetch', (event) => {
+  const { request } = event
+  const url = new URL(request.url)
+  
+  // Skip non-HTTP requests
+  if (!url.protocol.startsWith('http')) return
+  
+  // Skip cross-origin requests except for allowed domains
+  if (url.origin !== self.location.origin) {
+    const allowedOrigins = [
+      'https://fonts.googleapis.com',
+      'https://fonts.gstatic.com',
+      'https://cdn.jsdelivr.net'
+    ]
     
-    for (const request of requests) {
-      try {
-        const response = await fetch(request)
-        if (response.ok) {
-          await cache.delete(request)
-        }
-      } catch (error) {
-        console.error('Failed to sync:', error)
-      }
+    if (!allowedOrigins.some(origin => url.origin === origin)) {
+      return
     }
+  }
+  
+  // Determine strategy
+  let strategy = 'networkOnly'
+  
+  for (const [strat, patterns] of Object.entries(CACHE_STRATEGIES)) {
+    if (patterns.some(pattern => pattern.test(url.pathname) || pattern.test(url.href))) {
+      strategy = strat
+      break
+    }
+  }
+  
+  // Apply strategy
+  switch (strategy) {
+    case 'cacheFirst':
+      event.respondWith(cacheFirstStrategy(request))
+      break
+      
+    case 'networkFirst':
+      event.respondWith(networkFirstStrategy(request))
+      break
+      
+    case 'staleWhileRevalidate':
+      event.respondWith(staleWhileRevalidateStrategy(request))
+      break
+      
+    default:
+      // Network only (no caching)
+      return
+  }
+})
+
+/**
+ * Cache-first strategy
+ * Try cache, fallback to network
+ */
+async function cacheFirstStrategy(request) {
+  const cache = await caches.open(CACHE_NAME)
+  const cached = await cache.match(request)
+  
+  if (cached) {
+    console.log('[SW] Cache hit:', request.url)
+    return cached
+  }
+  
+  console.log('[SW] Cache miss, fetching:', request.url)
+  
+  try {
+    const response = await fetch(request)
+    
+    // Cache successful responses
+    if (response.ok) {
+      const responseClone = response.clone()
+      cache.put(request, responseClone)
+    }
+    
+    return response
   } catch (error) {
-    console.error('Sync failed:', error)
+    console.error('[SW] Fetch failed:', error)
+    throw error
   }
 }
 
-// Handle push notifications (if needed in future)
-self.addEventListener('push', (event: PushEvent) => {
-  const options = {
-    body: event.data?.text() || 'New update available',
-    icon: '/pwa-192x192.png',
-    badge: '/badge-72x72.png',
-    vibrate: [100, 50, 100],
-    data: {
-      dateOfArrival: Date.now(),
-      primaryKey: 1,
-    },
+/**
+ * Network-first strategy
+ * Try network, fallback to cache
+ */
+async function networkFirstStrategy(request) {
+  const cache = await caches.open(RUNTIME_CACHE)
+  
+  try {
+    const response = await fetch(request)
+    
+    // Cache successful responses
+    if (response.ok) {
+      const responseClone = response.clone()
+      cache.put(request, responseClone)
+    }
+    
+    return response
+  } catch (error) {
+    console.log('[SW] Network failed, trying cache:', request.url)
+    
+    const cached = await cache.match(request)
+    if (cached) {
+      return cached
+    }
+    
+    throw error
   }
+}
 
-  event.waitUntil(
-    self.registration.showNotification('Agenda Dashboard', options)
-  )
-})
+/**
+ * Stale-while-revalidate strategy
+ * Return cache immediately, update in background
+ */
+async function staleWhileRevalidateStrategy(request) {
+  const cache = await caches.open(IMAGE_CACHE)
+  const cached = await cache.match(request)
+  
+  const fetchPromise = fetch(request)
+    .then(response => {
+      if (response.ok) {
+        cache.put(request, response.clone())
+      }
+      return response
+    })
+    .catch(error => {
+      console.error('[SW] Background fetch failed:', error)
+      return cached || error
+    })
+  
+  return cached || fetchPromise
+}
 
-// Handle notification clicks
-self.addEventListener('notificationclick', (event: NotificationEvent) => {
-  event.notification.close()
-  event.waitUntil(
-    self.clients.openWindow('/')
-  )
-})
-
-// Skip waiting and claim clients
-self.addEventListener('message', (event: MessageEvent) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting()
-  }
-})
-
-self.addEventListener('activate', (event: ExtendableEvent) => {
-  event.waitUntil(self.clients.claim())
-})
+console.log('[SW] Service Worker loaded')

@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "./styles/globals.css";
+import "./styles/globals-optimized.css";
 import { Routes } from "@/routes";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ToastProvider } from "@/hooks/use-toast";

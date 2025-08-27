@@ -1,0 +1,272 @@
+/* Unified Mobile Styles - Optimized and Consolidated */
+
+/* ========== Core Mobile System ========== */
+:root {
+  --touch-target: 44px;
+  --safe-area-padding: env(safe-area-inset-bottom);
+  --mobile-breakpoint: 768px;
+  --mobile-nav-height: 60px;
+  --ai-button-offset: 80px;
+}
+
+/* ========== Base Mobile Reset ========== */
+@media (max-width: 768px) {
+  html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    overflow-x: hidden;
+    max-width: 100vw;
+    overscroll-behavior: none;
+    -webkit-font-smoothing: antialiased;
+    touch-action: manipulation;
+  }
+}
+
+/* ========== Safe Area Support (iOS/Android Notch) ========== */
+.safe-padding {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+.header-clean {
+  padding-top: calc(12px + env(safe-area-inset-top));
+}
+
+.bottom-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ========== Touch Targets (44px minimum) ========== */
+@media (max-width: 768px) {
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  .interactive,
+  .touch-target {
+    min-height: var(--touch-target);
+    min-width: var(--touch-target);
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    user-select: none;
+    touch-action: manipulation;
+  }
+
+  /* Allow text selection where needed */
+  input,
+  textarea,
+  .selectable,
+  p,
+  span {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+}
+
+/* ========== Prevent iOS Zoom on Input Focus ========== */
+input[type="text"],
+input[type="email"],
+input[type="number"],
+input[type="password"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+input[type="date"],
+input[type="time"],
+textarea,
+select {
+  font-size: 16px !important;
+  -webkit-appearance: none;
+  border-radius: 0;
+}
+
+/* ========== AI Dock Button - Unified Position ========== */
+.ai-dock-button,
+.assistant-dock-button {
+  position: fixed !important;
+  z-index: 9999 !important;
+  width: 56px !important;
+  height: 56px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: linear-gradient(135deg, #06b6d4, #0ea5e9) !important;
+  box-shadow: 0 4px 20px rgba(6, 182, 212, 0.4) !important;
+  transition: all 0.3s ease;
+  
+  /* Desktop positioning */
+  bottom: calc(20px + env(safe-area-inset-bottom)) !important;
+  right: max(20px, env(safe-area-inset-right)) !important;
+}
+
+@media (max-width: 768px) {
+  .ai-dock-button,
+  .assistant-dock-button {
+    /* Mobile positioning - higher to avoid nav */
+    bottom: calc(var(--ai-button-offset) + env(safe-area-inset-bottom)) !important;
+    width: 48px !important;
+    height: 48px !important;
+  }
+}
+
+/* Hide when drawer is open */
+.ai-drawer-open .ai-dock-button,
+.ai-drawer-open .assistant-dock-button {
+  display: none !important;
+}
+
+/* AI Drawer mobile optimization */
+@media (max-width: 768px) {
+  .ai-drawer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 85vh;
+    max-height: calc(100vh - env(safe-area-inset-top));
+    border-radius: 20px 20px 0 0;
+    width: 100% !important;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ========== Mobile Navigation ========== */
+@media (max-width: 768px) {
+  nav {
+    padding: 8px;
+  }
+
+  .nav-responsive {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .nav-button {
+    min-height: var(--touch-target);
+    padding: 10px 12px;
+  }
+
+  /* Bottom navigation for mobile */
+  .mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--background);
+    border-top: 1px solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom);
+    z-index: 90;
+  }
+}
+
+/* ========== Responsive Grid System ========== */
+@media (max-width: 768px) {
+  .page-grid,
+  .dashboard-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+    padding-bottom: calc(120px + env(safe-area-inset-bottom));
+  }
+
+  .card-responsive {
+    width: 100%;
+    margin: 0;
+    padding: 16px;
+  }
+
+  /* Stack elements vertically on small screens */
+  @media (max-width: 480px) {
+    .nav-responsive,
+    .flex-row {
+      flex-direction: column;
+    }
+
+    .nav-item button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}
+
+/* ========== Performance Optimizations ========== */
+@media (max-width: 768px) {
+  /* Hardware acceleration for smooth scrolling */
+  .scroll-container,
+  .overflow-y-auto,
+  .agenda-container {
+    -webkit-overflow-scrolling: touch;
+    transform: translateZ(0);
+    will-change: scroll-position;
+    backface-visibility: hidden;
+  }
+
+  /* Optimize animations for mobile */
+  * {
+    animation-duration: 200ms;
+  }
+
+  /* Reduce motion for battery saving */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}
+
+/* ========== Landscape Mode ========== */
+@media (orientation: landscape) and (max-height: 500px) {
+  .header-clean {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .container {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  /* Hide less important elements in landscape */
+  .landscape-hide {
+    display: none;
+  }
+}
+
+/* ========== Touch Feedback ========== */
+.touch-feedback:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+/* ========== Keyboard Handling ========== */
+.keyboard-open {
+  padding-bottom: 0;
+}
+
+.keyboard-open .ai-dock-button {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ========== PWA Optimizations ========== */
+@media (display-mode: standalone) {
+  body {
+    overscroll-behavior-y: none;
+  }
+
+  .pwa-padding {
+    padding-top: env(safe-area-inset-top);
+  }
+}
