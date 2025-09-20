@@ -1,0 +1,12 @@
+{
+  "timestamp": "2025-09-20T12:25:10.208Z",
+  "bundleSize": {
+    "sw.js": 64,
+    "total": 64
+  },
+  "metrics": {},
+  "issues": [
+    "373 console statements in production code"
+  ],
+  "score": 95
+}

@@ -13,9 +13,10 @@ interface DraggableNoteProps {
   note: Note;
   onDelete: (id: string) => void;
   index: number;
+  isHighlighted?: boolean;
 }
 
-function DraggableNote({ note, onDelete, index }: DraggableNoteProps) {
+function DraggableNote({ note, onDelete, index, isHighlighted }: DraggableNoteProps) {
   const {
     position,
     isDragging,
@@ -40,7 +41,8 @@ function DraggableNote({ note, onDelete, index }: DraggableNoteProps) {
         "absolute w-52 bg-card border border-border rounded-lg shadow-lg elevation-medium",
         "transition-shadow duration-200",
         isDragging && "shadow-2xl elevation-high cursor-grabbing z-50",
-        !isDragging && "hover:shadow-xl cursor-grab"
+        !isDragging && "hover:shadow-xl cursor-grab",
+        isHighlighted && !isDragging && "ring-2 ring-cyan-400/80 shadow-xl animate-pulse"
       )}
       style={{
         transform: `translate(${position.x}px, ${position.y}px)`,
@@ -84,6 +86,7 @@ export const DraggableNotesPanel: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   const [newNoteText, setNewNoteText] = useState('');
+  const [highlightedNoteId, setHighlightedNoteId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const loadNotes = async () => {
@@ -104,6 +107,100 @@ export const DraggableNotesPanel: React.FC = () => {
 
   useEffect(() => {
     loadNotes();
+  }, []);
+
+  useEffect(() => {
+    if (!highlightedNoteId) return;
+
+    const timeout = window.setTimeout(() => setHighlightedNoteId(null), 2000);
+    return () => window.clearTimeout(timeout);
+  }, [highlightedNoteId]);
+
+  useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      const isActivationShortcut = (event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === 'n';
+      if (!isActivationShortcut) return;
+
+      event.preventDefault();
+      setIsExpanded(prev => !prev);
+    };
+
+    window.addEventListener('keydown', handleShortcut, true);
+    return () => window.removeEventListener('keydown', handleShortcut, true);
+  }, []);
+
+  useEffect(() => {
+    const handleCreated = (event: Event) => {
+      const { detail } = event as CustomEvent<Partial<Note>>;
+      if (!detail) {
+        loadNotes();
+        return;
+      }
+
+      let createdId = '';
+
+      setNotes(prev => {
+        const sanitized: Note = {
+          id: detail.id ?? `note-${Date.now()}`,
+          body: detail.body ?? detail.content ?? '',
+          tag: detail.tag ?? 'todo',
+          created_at: detail.created_at ?? new Date().toISOString(),
+          updated_at: detail.updated_at ?? new Date().toISOString()
+        } as Note;
+
+        createdId = sanitized.id;
+
+        const existing = prev.filter(note => note.id !== sanitized.id);
+        return [sanitized, ...existing].slice(0, 6);
+      });
+
+      if (createdId) {
+        setHighlightedNoteId(createdId);
+      }
+    };
+
+    const handleUpdated = (event: Event) => {
+      const { detail } = event as CustomEvent<Partial<Note>>;
+      if (!detail?.id) return;
+
+      setNotes(prev =>
+        prev.map(note =>
+          note.id === detail.id
+            ? {
+                ...note,
+                body: detail.body ?? detail.content ?? note.body,
+                tag: detail.tag ?? note.tag,
+                updated_at: detail.updated_at ?? new Date().toISOString()
+              }
+            : note
+        )
+      );
+
+      setHighlightedNoteId(detail.id);
+    };
+
+    const handleDeleted = (event: Event) => {
+      const { detail } = event as CustomEvent<{ id?: string }>;
+      if (!detail?.id) return;
+
+      setNotes(prev => prev.filter(note => note.id !== detail.id));
+    };
+
+    const listeners: Array<[string, EventListener]> = [
+      ['note:created', handleCreated as EventListener],
+      ['note:updated', handleUpdated as EventListener],
+      ['note:deleted', handleDeleted as EventListener]
+    ];
+
+    listeners.forEach(([event, handler]) =>
+      window.addEventListener(event, handler)
+    );
+
+    return () => {
+      listeners.forEach(([event, handler]) =>
+        window.removeEventListener(event, handler)
+      );
+    };
   }, []);
 
   const handleCreate = async () => {
@@ -208,6 +305,7 @@ export const DraggableNotesPanel: React.FC = () => {
           note={note}
           onDelete={handleDelete}
           index={index}
+          isHighlighted={note.id === highlightedNoteId}
         />
       ))}
     </>
