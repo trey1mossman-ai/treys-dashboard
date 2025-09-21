@@ -156,15 +156,20 @@ export function MobileDashboardV3() {
         }
 
         if (proxyUrl) {
+          console.log(`Calling webhook: ${proxyUrl}`)
           const response = await fetch(proxyUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload || {})
           })
           const data = await response.json()
+          console.log(`Webhook response:`, data)
+
+          // Wait a moment for data to be saved to Supabase
+          await new Promise(resolve => setTimeout(resolve, 1000))
         }
 
-        // Then fetch from API
+        // Then fetch from Supabase
         if (actionId === 'email-refresh') {
           await fetchEmailsFromAPI()
           toast.success('Emails refreshed!')
