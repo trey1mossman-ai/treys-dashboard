@@ -179,13 +179,17 @@ export function MobileDashboardV3() {
           await new Promise(resolve => setTimeout(resolve, 1000))
         }
 
-        // Then fetch from Supabase
+        // Then fetch from Supabase (after the webhook has saved new data)
         if (actionId === 'email-refresh') {
           await fetchEmailsFromAPI()
-          toast.success('Emails refreshed!')
+          const emailCount = emails.length
+          toast.success(`Emails refreshed! ${emailCount > 0 ? `Found ${emailCount} emails` : 'Check your inbox'}`)
         } else if (actionId === 'calendar-sync') {
           await fetchCalendarFromAPI()
-          toast.success('Calendar synced!')
+          const eventCount = events.length
+          toast.success(`Calendar synced! ${eventCount > 0 ? `Found ${eventCount} events` : 'Check your calendar'}`)
+        } else if (actionId === 'ai-chat') {
+          toast.success('AI Assistant activated!')
         }
       }
     } catch (error) {
@@ -212,10 +216,28 @@ export function MobileDashboardV3() {
           console.warn('⚠️ Supabase connection failed, using fallback')
         }
 
-        // Try fetching from Supabase
+        // Load data from Supabase on initial load
         await Promise.all([
           fetchEmailsFromAPI(),
           fetchCalendarFromAPI()
+        ])
+
+        // Also set up some sample tasks
+        setTasks([
+          {
+            id: '1',
+            title: 'Review emails',
+            completed: false,
+            priority: 'high',
+            dueDate: new Date().toLocaleDateString()
+          },
+          {
+            id: '2',
+            title: 'Prepare for meetings',
+            completed: false,
+            priority: 'medium',
+            dueDate: new Date().toLocaleDateString()
+          }
         ])
       } catch (error) {
         console.error('Failed to load initial data:', error)
