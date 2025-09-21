@@ -29,15 +29,15 @@ export default defineConfig({
             }
           },
           {
-            urlPattern: /^https:\/\/ailifeassistanttm\.com/,
+            urlPattern: /^https:\/\/flow\.voxemarketing\.com/,
             handler: 'NetworkFirst',
             options: {
-              cacheName: 'backend-cache',
+              cacheName: 'n8n-cache',
               expiration: {
                 maxEntries: 50,
                 maxAgeSeconds: 60 * 60 // 1 hour
               },
-              networkTimeoutSeconds: 3
+              networkTimeoutSeconds: 5
             }
           }
         ]

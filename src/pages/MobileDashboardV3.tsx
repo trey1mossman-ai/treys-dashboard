@@ -40,8 +40,12 @@ interface CalendarEvent {
   location?: string
 }
 
-// API backend URL - Cloudflare Pages
-const API_BASE = 'https://agenda-dashboard.pages.dev'
+// Direct n8n webhook URLs (no proxy needed)
+const N8N_WEBHOOKS = {
+  email: 'https://flow.voxemarketing.com/webhook/c14a535e-80bf-4bd9-9b3d-1001e6917d85',
+  calendar: 'https://flow.voxemarketing.com/webhook/f4fd2f67-df3b-4ee2-b426-944e51d01f28',
+  chat: 'https://flow.voxemarketing.com/webhook/c0552eb4-8ed7-4a46-b141-492ba7fefd04/chat'
+}
 
 export function MobileDashboardV3() {
   const [activeTab, setActiveTab] = useState('home')
