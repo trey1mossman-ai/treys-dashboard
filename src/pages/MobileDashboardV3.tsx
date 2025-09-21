@@ -11,6 +11,7 @@ import {
   Loader2
 } from 'lucide-react'
 import { webhookService } from '@/services/webhookService'
+import { supabaseService } from '@/services/supabaseService'
 import { useToast } from '@/hooks/useToast'
 import { EmailViewerModal } from '@/components/EmailViewerModal'
 import { API_ENDPOINTS } from '@/config/api'
@@ -57,51 +58,62 @@ export function MobileDashboardV3() {
   // Calculate today's progress
   const todayProgress = tasks.filter(t => t.completed).length / Math.max(tasks.length, 1) * 100
 
-  // Fetch emails from API
+  // Fetch emails from Supabase
   const fetchEmailsFromAPI = async () => {
     try {
-      // First try webhookService
-      const emailData = await webhookService.fetchEmails()
-      setEmails(emailData.slice(0, 5))
+      // Use Supabase service
+      const emailData = await supabaseService.fetchEmails(5)
 
-      // Also try API endpoint if it exists
-      try {
-        const response = await fetch(`${API_BASE}/api/webhook/emails`)
-        if (response.ok) {
-          const apiData = await response.json()
-          if (apiData.emails && apiData.emails.length > 0) {
-            setEmails(apiData.emails.slice(0, 5))
-          }
-        }
-      } catch (apiError) {
-        console.log('API endpoint not available, using webhook data')
-      }
+      // Transform to match our interface
+      const transformedEmails = emailData.map(email => ({
+        id: email.id,
+        from: email.from_name || email.from_email,
+        subject: email.subject || 'No Subject',
+        snippet: email.snippet || email.body_plain?.substring(0, 100) || '',
+        body: email.body || email.body_plain,
+        date: email.timestamp
+      }))
+
+      setEmails(transformedEmails)
+      console.log('✅ Fetched emails from Supabase:', transformedEmails.length)
     } catch (error) {
-      console.error('Failed to fetch emails:', error)
+      console.error('Failed to fetch emails from Supabase:', error)
+      // Fallback to webhook service if Supabase fails
+      try {
+        const emailData = await webhookService.fetchEmails()
+        setEmails(emailData.slice(0, 5))
+      } catch (webhookError) {
+        console.error('Webhook fallback also failed:', webhookError)
+      }
     }
   }
 
-  // Fetch calendar from API
+  // Fetch calendar from Supabase
   const fetchCalendarFromAPI = async () => {
     try {
-      // First try webhookService
-      const eventData = await webhookService.fetchCalendarEvents()
-      setEvents(eventData.slice(0, 5))
+      // Use Supabase service
+      const eventData = await supabaseService.fetchCalendarEvents(7)
 
-      // Also try API endpoint if it exists
-      try {
-        const response = await fetch(`${API_BASE}/api/webhook/calendar`)
-        if (response.ok) {
-          const apiData = await response.json()
-          if (apiData.events && apiData.events.length > 0) {
-            setEvents(apiData.events.slice(0, 5))
-          }
-        }
-      } catch (apiError) {
-        console.log('API endpoint not available, using webhook data')
-      }
+      // Transform to match our interface
+      const transformedEvents = eventData.map(event => ({
+        id: event.id,
+        title: event.summary,
+        start: event.start,
+        end: event.end,
+        location: event.location
+      }))
+
+      setEvents(transformedEvents.slice(0, 5))
+      console.log('✅ Fetched calendar from Supabase:', transformedEvents.length)
     } catch (error) {
-      console.error('Failed to fetch calendar:', error)
+      console.error('Failed to fetch calendar from Supabase:', error)
+      // Fallback to webhook service if Supabase fails
+      try {
+        const eventData = await webhookService.fetchCalendarEvents()
+        setEvents(eventData.slice(0, 5))
+      } catch (webhookError) {
+        console.error('Webhook fallback also failed:', webhookError)
+      }
     }
   }
 
@@ -155,42 +167,19 @@ export function MobileDashboardV3() {
         const stored = localStorage.getItem('lastRefresh')
         if (stored) setLastRefresh(stored)
 
-        // Try API endpoints first
-        const endpoints = [
-          fetch(`${API_BASE}/api/webhook/emails`).catch(() => null),
-          fetch(`${API_BASE}/api/webhook/calendar`).catch(() => null)
-        ]
-
-        const [emailResponse, calendarResponse] = await Promise.all(endpoints)
-
-        if (emailResponse && emailResponse.ok) {
-          const emailData = await emailResponse.json()
-          if (emailData.emails) {
-            setEmails(emailData.emails.slice(0, 5))
-          }
+        // Test Supabase connection first
+        const connectionOk = await supabaseService.testConnection()
+        if (connectionOk) {
+          console.log('✅ Supabase connected successfully!')
+        } else {
+          console.warn('⚠️ Supabase connection failed, using fallback')
         }
 
-        if (calendarResponse && calendarResponse.ok) {
-          const calendarData = await calendarResponse.json()
-          if (calendarData.events) {
-            setEvents(calendarData.events.slice(0, 5))
-          }
-        }
-
-        // Fallback to cached data from webhookService
-        if (!emailResponse || !emailResponse.ok) {
-          const cachedEmails = await webhookService.getCachedEmails()
-          if (cachedEmails.length > 0) {
-            setEmails(cachedEmails.slice(0, 5))
-          }
-        }
-
-        if (!calendarResponse || !calendarResponse.ok) {
-          const cachedEvents = await webhookService.getCachedCalendarEvents()
-          if (cachedEvents.length > 0) {
-            setEvents(cachedEvents.slice(0, 5))
-          }
-        }
+        // Try fetching from Supabase
+        await Promise.all([
+          fetchEmailsFromAPI(),
+          fetchCalendarFromAPI()
+        ])
       } catch (error) {
         console.error('Failed to load initial data:', error)
       }

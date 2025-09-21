@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { X, Send, Wand2, CheckCircle, Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/useToast'
+import { supabaseService } from '@/services/supabaseService'
 
 interface EmailViewerModalProps {
   email: {
@@ -28,36 +29,52 @@ export function EmailViewerModal({ email, isOpen, onClose }: EmailViewerModalPro
       setAiLoading(action)
       setShowResponse(false)
 
+      // Format prompts for Elios AI system
+      const emailContent = email.body || email.snippet
       const prompts = {
-        reply: `Reply to this email professionally: ${email.body || email.snippet}`,
-        professional: `Rewrite this to be more professional: ${email.body || email.snippet}`,
-        grammar: `Fix grammar and spelling: ${email.body || email.snippet}`
+        reply: `Reply to email from ${email.from} about "${email.subject}": ${emailContent}`,
+        professional: `Make this professional: ${emailContent}`,
+        grammar: `Fix grammar: ${emailContent}`
       }
 
-      // Call n8n AI Chat webhook
+      // Call Elios AI Chat webhook with simplified format
       const response = await fetch('https://flow.voxemarketing.com/webhook/c0552eb4-8ed7-4a46-b141-492ba7fefd04/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          sessionId: `email-${email.id}-${Date.now()}`,
-          action: 'sendMessage',
           chatInput: prompts[action],
-          context: {
-            emailId: email.id,
-            emailFrom: email.from,
-            emailSubject: email.subject,
-            actionType: action
-          }
+          sessionId: `email-${email.id}-${Date.now()}`
         })
       })
 
       if (!response.ok) {
-        throw new Error('n8n AI webhook failed')
+        throw new Error('Elios AI webhook failed')
       }
 
-      const data = await response.json()
-      const aiText = data.output || data.message || data.response || data.text || 'No response generated'
+      // Handle response - Elios may return plain text or JSON
+      const contentType = response.headers.get('content-type')
+      let aiText = ''
+
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json()
+        // Try multiple possible response fields from Elios
+        aiText = data.output || data.message || data.response || data.text || data.result ||
+                 (typeof data === 'string' ? data : 'No response generated')
+      } else {
+        // Handle plain text response
+        aiText = await response.text()
+      }
+
       setAiResponse(aiText)
+
+      // Log conversation to Supabase
+      await supabaseService.logAIConversation({
+        email_id: email.id,
+        action: action,
+        request: prompts[action],
+        response: aiText,
+        session_id: `email-${email.id}-${Date.now()}`
+      })
 
       setShowResponse(true)
       toast.success(`AI ${action} generated!`)
