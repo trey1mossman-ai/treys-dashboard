@@ -91,12 +91,12 @@ export function AIDock() {
     setIsProcessing(true);
 
     try {
-      // Use backend proxy to call n8n webhook (avoids CORS issues)
-      const apiUrl = window.location.hostname === 'localhost' 
-        ? 'http://localhost:8788' 
-        : '';
-        
-      const response = await fetch(`${apiUrl}/api/n8n/chat`, {
+      // Use Vercel API proxy to call n8n webhook (avoids CORS issues)
+      const proxyUrl = window.location.hostname !== 'localhost'
+        ? '/api/webhook/chat'
+        : 'http://localhost:3000/api/webhook/chat';
+
+      const response = await fetch(proxyUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -187,11 +187,11 @@ export function AIDock() {
     setIsProcessing(true);
 
     try {
-      const apiUrl = window.location.hostname === 'localhost' 
-        ? 'http://localhost:8788' 
-        : '';
-        
-      const response = await fetch(`${apiUrl}/api/n8n/chat`, {
+      const proxyUrl = window.location.hostname !== 'localhost'
+        ? '/api/webhook/chat'
+        : 'http://localhost:3000/api/webhook/chat';
+
+      const response = await fetch(proxyUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

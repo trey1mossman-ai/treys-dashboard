@@ -1855,7 +1855,9 @@ export function SimpleDashboard() {
                   
                   try {
                     // Use direct n8n webhook for AI Agent
-                    const agentWebhook = 'https://flow.voxemarketing.com/webhook/c0552eb4-8ed7-4a46-b141-492ba7fefd04/chat';
+                    const agentWebhook = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+                      ? '/api/webhook/chat'
+                      : 'http://localhost:3000/api/webhook/chat';
                     
                     // Create the message with email context and user's reply
                     const fullMessage = `Here is the reply for email ID ${replyModal.email?.id || 'unknown'}. Please edit this for grammar and professionalism:\n\n"${replyText}"`;
