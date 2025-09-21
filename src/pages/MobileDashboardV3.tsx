@@ -13,6 +13,7 @@ import {
 import { webhookService } from '@/services/webhookService'
 import { useToast } from '@/hooks/useToast'
 import { EmailViewerModal } from '@/components/EmailViewerModal'
+import { API_ENDPOINTS } from '@/config/api'
 
 interface Task {
   id: string
@@ -38,6 +39,9 @@ interface CalendarEvent {
   location?: string
 }
 
+// API backend URL - Cloudflare Pages
+const API_BASE = 'https://agenda-dashboard.pages.dev'
+
 export function MobileDashboardV3() {
   const [activeTab, setActiveTab] = useState('home')
   const [loading, setLoading] = useState<string | null>(null)
@@ -62,7 +66,7 @@ export function MobileDashboardV3() {
 
       // Also try API endpoint if it exists
       try {
-        const response = await fetch('/api/webhook/emails')
+        const response = await fetch(`${API_BASE}/api/webhook/emails`)
         if (response.ok) {
           const apiData = await response.json()
           if (apiData.emails && apiData.emails.length > 0) {
@@ -86,7 +90,7 @@ export function MobileDashboardV3() {
 
       // Also try API endpoint if it exists
       try {
-        const response = await fetch('/api/webhook/calendar')
+        const response = await fetch(`${API_BASE}/api/webhook/calendar`)
         if (response.ok) {
           const apiData = await response.json()
           if (apiData.events && apiData.events.length > 0) {
@@ -153,8 +157,8 @@ export function MobileDashboardV3() {
 
         // Try API endpoints first
         const endpoints = [
-          fetch('/api/webhook/emails').catch(() => null),
-          fetch('/api/webhook/calendar').catch(() => null)
+          fetch(`${API_BASE}/api/webhook/emails`).catch(() => null),
+          fetch(`${API_BASE}/api/webhook/calendar`).catch(() => null)
         ]
 
         const [emailResponse, calendarResponse] = await Promise.all(endpoints)

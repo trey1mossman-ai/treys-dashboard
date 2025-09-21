@@ -10,6 +10,10 @@ database_id = "6b67d1d6-bbec-4a13-922e-a6e8dd24c533"
 
 # KV Namespaces
 [[kv_namespaces]]
+binding = "AGENDA_KV"
+id = "78bf1548c9a549009efd9d42ddfd5e5c"
+
+[[kv_namespaces]]
 binding = "TRAINER_KV"
 id = "ae4c22b7500545ce99f89cefd1b88644"
 
