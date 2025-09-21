@@ -23,7 +23,7 @@ const SimpleDashboard = lazy(() => import('@/pages/SimpleDashboard'))
 const Day3Demo = lazy(() => import('@/pages/Day3Demo'))
 const ProjectBoard = lazy(() => import('@/pages/ProjectBoard'))
 const LifeOS = lazy(() => import('@/pages/LifeOS').then(m => ({ default: m.LifeOS })))
-const MobileDashboardV3 = lazy(() => import('@/pages/MobileDashboardV3').then(m => ({ default: m.MobileDashboardV3 })))
+const MobileDashboardV3 = lazy(() => import('@/pages/MobileDashboardV3').then(module => ({ default: module.MobileDashboardV3 })))
 
 // Loading wrapper for lazy loaded components with error boundary
 function LazyRoute({ Component }: { Component: React.LazyExoticComponent<React.ComponentType> }) {
