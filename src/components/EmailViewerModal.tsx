@@ -37,8 +37,12 @@ export function EmailViewerModal({ email, isOpen, onClose }: EmailViewerModalPro
         grammar: `Fix grammar: ${emailContent}`
       }
 
-      // Call Elios AI Chat webhook with simplified format
-      const response = await fetch('https://flow.voxemarketing.com/webhook/c0552eb4-8ed7-4a46-b141-492ba7fefd04/chat', {
+      // Call Elios AI Chat webhook through proxy to avoid CORS
+      const proxyUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+        ? '/api/webhook/chat'
+        : 'http://localhost:3000/api/webhook/chat'
+
+      const response = await fetch(proxyUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

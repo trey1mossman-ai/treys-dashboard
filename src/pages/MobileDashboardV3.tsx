@@ -40,11 +40,19 @@ interface CalendarEvent {
   location?: string
 }
 
-// Direct n8n webhook URLs (no proxy needed)
-const N8N_WEBHOOKS = {
-  email: 'https://flow.voxemarketing.com/webhook/c14a535e-80bf-4bd9-9b3d-1001e6917d85',
-  calendar: 'https://flow.voxemarketing.com/webhook/f4fd2f67-df3b-4ee2-b426-944e51d01f28',
-  chat: 'https://flow.voxemarketing.com/webhook/c0552eb4-8ed7-4a46-b141-492ba7fefd04/chat'
+// Use Vercel API routes to proxy n8n webhooks (avoids CORS issues)
+const getWebhookUrls = () => {
+  // In production, use relative URLs for API routes
+  // In development, use full localhost URL
+  const base = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    ? ''
+    : 'http://localhost:3000'
+
+  return {
+    email: `${base}/api/webhook/emails`,
+    calendar: `${base}/api/webhook/calendar`,
+    chat: `${base}/api/webhook/chat`
+  }
 }
 
 export function MobileDashboardV3() {
@@ -125,6 +133,7 @@ export function MobileDashboardV3() {
   const executeQuickAction = async (actionId: string, webhook?: string, payload?: any) => {
     try {
       setLoading(actionId)
+      const webhookUrls = getWebhookUrls()
 
       if (actionId === 'refresh-all') {
         // Just refresh from API without calling webhook
@@ -136,9 +145,18 @@ export function MobileDashboardV3() {
         setLastRefresh(new Date().toISOString())
         localStorage.setItem('lastRefresh', new Date().toISOString())
       } else {
-        // Call webhook if provided
-        if (webhook) {
-          const response = await fetch(webhook, {
+        // Use proxy webhooks instead of direct URLs
+        let proxyUrl = webhook
+        if (actionId === 'email-refresh') {
+          proxyUrl = webhookUrls.email
+        } else if (actionId === 'calendar-sync') {
+          proxyUrl = webhookUrls.calendar
+        } else if (actionId === 'ai-chat') {
+          proxyUrl = webhookUrls.chat
+        }
+
+        if (proxyUrl) {
+          const response = await fetch(proxyUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload || {})
