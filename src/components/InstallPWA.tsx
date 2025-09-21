@@ -17,13 +17,15 @@ export function InstallPWA() {
 
   const handleInstall = async () => {
     setIsInstalling(true)
-    const { outcome } = await install()
-    
-    if (outcome === 'accepted' || isIOS) {
-      setDismissed(true)
+    try {
+      const result = await install()
+
+      if (result?.outcome === 'accepted' || isIOS) {
+        setDismissed(true)
+      }
+    } finally {
+      setIsInstalling(false)
     }
-    
-    setIsInstalling(false)
   }
 
   const handleDismiss = () => {
@@ -33,12 +35,14 @@ export function InstallPWA() {
   }
 
   // Check if previously dismissed within 7 days
-  const previouslyDismissed = localStorage.getItem('pwa-install-dismissed')
-  if (previouslyDismissed) {
-    const dismissedTime = parseInt(previouslyDismissed)
-    const sevenDays = 7 * 24 * 60 * 60 * 1000
-    if (Date.now() - dismissedTime < sevenDays) {
-      return null
+  if (typeof window !== 'undefined') {
+    const previouslyDismissed = localStorage.getItem('pwa-install-dismissed')
+    if (previouslyDismissed) {
+      const dismissedTime = parseInt(previouslyDismissed)
+      const sevenDays = 7 * 24 * 60 * 60 * 1000
+      if (Date.now() - dismissedTime < sevenDays) {
+        return null
+      }
     }
   }
 

@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "./styles/globals-optimized.css";
+import "./styles/globals.css";
 import { Routes } from "@/routes";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ToastProvider } from "@/hooks/use-toast";
@@ -17,6 +17,8 @@ if (rootElement) {
       </ErrorBoundary>
     </React.StrictMode>
   );
+
+  // Service worker registration is managed via the usePWA hook within the app shell.
 } else {
   console.error("Root element not found!");
 }

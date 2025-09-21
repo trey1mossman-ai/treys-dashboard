@@ -1,7 +1,22 @@
-import { useState, useEffect } from 'react';
-import { RefreshCw, Mail, Calendar, Star } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { RefreshCw, Mail, Calendar, Star, Keyboard, Plus, Move } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { TimelineSchedule } from '@/components/TimelineSchedule';
+import { useKeyboardShortcuts, APP_SHORTCUTS } from '@/hooks/useKeyboardShortcuts';
+import { KeyboardShortcutsModal } from '@/components/KeyboardShortcutsModal';
+import { CommandPalette } from '@/components/CommandPalette';
+import { DraggableList } from '@/components/DraggableList';
+import { useSwipeGesture } from '@/hooks/useGestures';
+import { useOffline } from '@/hooks/useOffline';
+import { OfflineIndicator } from '@/components/OfflineIndicator';
+import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
+import { SmartTaskList } from '@/components/projects/SmartTaskList';
+import { VirtualList } from '@/components/VirtualList';
+import { EmailSkeleton, EventSkeleton } from '@/components/ui/Skeleton';
+import { useOptimizedData } from '@/hooks/useOptimizedData';
+import { db } from '@/services/db';
+import { cn } from '@/lib/utils';
+import type { DraggableProvided, DraggableStateSnapshot } from 'react-beautiful-dnd';
 
 interface Email {
   id: string;
@@ -50,22 +65,193 @@ interface ScheduleItem {
   status?: string;
 }
 
-export default function SimpleDashboard() {
-  const [emails, setEmails] = useState<Email[]>([]);
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
+export function SimpleDashboard() {
+  const { isOnline } = useOffline();
   const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([]);
-  const [emailLoading, setEmailLoading] = useState(true);
-  const [eventLoading, setEventLoading] = useState(true);
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [webhookStatus, setWebhookStatus] = useState<string>('');
   const [replyModal, setReplyModal] = useState<{ show: boolean; email: Email | null }>({ show: false, email: null });
   const [replyText, setReplyText] = useState<string>('');
   const [isSending, setIsSending] = useState<boolean>(false);
-  
+
   // Data persistence state
-  const [lastEmailLoad, setLastEmailLoad] = useState<string | null>(null);
-  const [lastEventLoad, setLastEventLoad] = useState<string | null>(null);
+  const archiveTimeoutRef = useRef<number | null>(null);
+
+  // Use optimized data hooks with caching
+  const { data: emailsData, isLoading: emailLoading, refetch: refetchEmails } = useOptimizedData<Email[]>(
+    'emails',
+    async () => {
+      const apiUrl = window.location.hostname === 'localhost'
+        ? 'http://localhost:8788'
+        : 'https://ailifeassistanttm.com';
+
+      // Trigger workflow
+      await fetch(`${apiUrl}/api/trigger/emails`);
+      // Wait for workflow
+      await new Promise(resolve => setTimeout(resolve, 6000));
+
+      const response = await fetch(`${apiUrl}/api/webhook/emails?t=${Date.now()}`, {
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      const data = await response.json();
+
+      if (data.emails && Array.isArray(data.emails)) {
+        return data.emails.slice(0, 15).map((email: any) => ({
+          id: email.id || Math.random().toString(),
+          subject: email.subject || '(No Subject)',
+          from: typeof email.from === 'string' ? email.from :
+            (email.from?.email || email.from?.name || email.fromEmail || email.fromName || 'Unknown Sender'),
+          date: email.sentDate || email.timestamp || email.date,
+          preview: email.preview || email.snippet || '',
+          isRead: email.isRead !== undefined ? email.isRead : true,
+          isImportant: email.isImportant || email.isStarred || false,
+          to: typeof email.to === 'string' ? email.to :
+            (email.to?.email || email.to?.name || email.toEmail || ''),
+          cc: typeof email.cc === 'string' ? email.cc :
+            (email.cc?.email || email.cc?.name || ''),
+          attachments: Array.isArray(email.attachments) ?
+            email.attachments.map((a: any) => typeof a === 'string' ? a : (a.name || a.filename || a.id || 'Attachment')) : [],
+          labels: Array.isArray(email.labels || email.labelIds) ?
+            (email.labels || email.labelIds).map((l: any) => typeof l === 'string' ? l : (l.name || l.id || 'Label')) : [],
+          body: email.body || email.textPlain || email.textHtml || ''
+        }));
+      }
+      return [];
+    },
+    { ttl: 300 } // 5 minute cache
+  );
+
+  const { data: eventsData, isLoading: eventLoading, refetch: refetchEvents } = useOptimizedData<CalendarEvent[]>(
+    'events',
+    async () => {
+      const apiUrl = window.location.hostname === 'localhost'
+        ? 'http://localhost:8788'
+        : 'https://ailifeassistanttm.com';
+
+      // Trigger workflow
+      await fetch(`${apiUrl}/api/trigger/calendar`);
+      // Wait for workflow
+      await new Promise(resolve => setTimeout(resolve, 6000));
+
+      const response = await fetch(`${apiUrl}/api/webhook/calendar?t=${Date.now()}`, {
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      const data = await response.json();
+
+      if (data.events && Array.isArray(data.events)) {
+        return data.events.slice(0, 10).map((event: any) => ({
+          id: event.id || Math.random().toString(),
+          title: event.summary || event.title || 'Untitled Event',
+          startTime: event.start || event.startTime || event.start?.dateTime || event.start?.date || '',
+          endTime: event.end || event.endTime || event.end?.dateTime || event.end?.date || '',
+          status: event.status || 'confirmed',
+          location: event.location || '',
+          description: event.description || '',
+          attendees: Array.isArray(event.attendees) ?
+            event.attendees.map((a: any) => typeof a === 'string' ? a : (a.email || a.displayName || 'Unknown')) : [],
+          organizer: typeof event.organizer === 'string' ? event.organizer :
+            (event.organizer?.email || event.organizer?.displayName || event.creator || ''),
+          meetingUrl: extractMeetingUrl(event),
+          conferenceData: event.conferenceData || null,
+          isAllDay: event.isAllDay || false
+        }));
+      }
+      return [];
+    },
+    { ttl: 300 } // 5 minute cache
+  );
+
+  // Use memoized data
+  const emails = useMemo(() => emailsData || [], [emailsData]);
+  const events = useMemo(() => eventsData || [], [eventsData]);
+  const lastEmailLoad = emails.length > 0 ? new Date().toISOString() : null;
+  const lastEventLoad = events.length > 0 ? new Date().toISOString() : null;
+
+  const handleEmailReorder = useCallback((updated: Email[]) => {
+    // Update local state only - will sync to cache on next refetch
+    // For now, this is a no-op since we're using cached data
+  }, []);
+
+  const handleSelectEmail = useCallback((email: Email) => {
+    setSelectedEmail(email);
+  }, []);
+
+  const handleArchiveEmail = useCallback((emailId: string) => {
+    // Archive is visual only for now - will sync on next refetch
+    if (selectedEmail?.id === emailId) {
+      setSelectedEmail(null);
+    }
+    setWebhookStatus('📥 Email archived');
+    if (archiveTimeoutRef.current) {
+      window.clearTimeout(archiveTimeoutRef.current);
+    }
+    archiveTimeoutRef.current = window.setTimeout(() => setWebhookStatus(''), 1800);
+  }, [selectedEmail]);
+
+  useEffect(() => {
+    return () => {
+      if (archiveTimeoutRef.current) {
+        window.clearTimeout(archiveTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Assistant Tool Integration - Listen for AI-created items
+  useEffect(() => {
+    const handlers = {
+      'agenda:created': () => {
+        console.log('Agenda item created via AI');
+        refetchEvents();
+      },
+      'agenda:updated': () => {
+        console.log('Agenda item updated via AI');
+        refetchEvents();
+      },
+      'agenda:deleted': () => {
+        console.log('Agenda item deleted via AI');
+        refetchEvents();
+      },
+      'note:created': (e: Event) => {
+        const event = e as CustomEvent;
+        console.log('Note created via AI:', event.detail);
+        // Notes are handled by NotesBoard component
+      },
+      'action:executed': (e: Event) => {
+        const event = e as CustomEvent;
+        console.log('Action executed via AI:', event.detail);
+        setWebhookStatus(`✅ Action completed: ${event.detail?.action?.name || 'Unknown'}`);
+        setTimeout(() => setWebhookStatus(''), 3000);
+      },
+      'summary:generated': () => {
+        console.log('Summary generated via AI');
+        // Could trigger a refresh of analytics if needed
+      }
+    };
+
+    Object.entries(handlers).forEach(([eventName, handler]) => {
+      window.addEventListener(eventName, handler as EventListener);
+    });
+
+    return () => {
+      Object.entries(handlers).forEach(([eventName, handler]) => {
+        window.removeEventListener(eventName, handler as EventListener);
+      });
+    };
+  }, [refetchEvents]);
+
+  // Keyboard shortcuts state
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   // Helper function to extract meeting URLs from various fields
   const extractMeetingUrl = (event: any): string => {
@@ -98,191 +284,65 @@ export default function SimpleDashboard() {
     return '';
   };
 
-  const fetchEmails = async () => {
-    try {
-      setEmailLoading(true);
-      setWebhookStatus('🔄 Triggering email refresh...');
-      
-      // Use our server-side trigger endpoint (no CORS issues)
-      const apiUrl = window.location.hostname === 'localhost' 
-        ? 'http://localhost:8788' 
-        : 'https://ailifeassistanttm.com';
-      
-      console.log('Triggering email workflow via:', `${apiUrl}/api/trigger/emails`);
-      
-      const triggerResponse = await fetch(`${apiUrl}/api/trigger/emails`);
-      const triggerResult = await triggerResponse.json();
-      
-      if (triggerResult.success) {
-        console.log('✅ Email workflow triggered successfully:', triggerResult);
-        setWebhookStatus(`✅ Workflow started! ${triggerResult.webhook?.message || ''}`);
-      } else {
-        console.error('❌ Failed to trigger workflow:', triggerResult);
-        setWebhookStatus('❌ Failed to trigger workflow');
-        setEmailLoading(false);
-        return; // Stop if trigger failed
-      }
-      
-      // Wait longer for the n8n workflow to complete and post data
-      console.log('Waiting for workflow to complete...');
-      setWebhookStatus('⏳ Waiting for data update...');
-      await new Promise(resolve => setTimeout(resolve, 6000));
-      
-      // Fetch with cache-busting to ensure fresh data
-      const timestamp = Date.now();
-      const emailUrl = `${apiUrl}/api/webhook/emails?t=${timestamp}`;
-      console.log('Fetching fresh emails from:', emailUrl);
-      
-      const response = await fetch(emailUrl, {
-        cache: 'no-cache',
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
-      });
-      const data = await response.json();
-      console.log('📧 Email data received:', {
-        timestamp: data.timestamp,
-        emailCount: data.emails?.length,
-        source: data.source
-      });
-      
-      if (data.emails && Array.isArray(data.emails) && data.emails.length > 0) {
-        console.log('Processing emails:', data.emails.map((e: any) => ({
-          subject: e.subject,
-          from: e.from
-        })));
-        
-        const mappedEmails = data.emails.slice(0, 15).map((email: any) => ({
-          id: email.id || Math.random().toString(),
-          subject: email.subject || '(No Subject)',
-          from: typeof email.from === 'string' ? email.from : 
-            (email.from?.email || email.from?.name || email.fromEmail || email.fromName || 'Unknown Sender'),
-          date: email.sentDate || email.timestamp || email.date,
-          preview: email.preview || email.snippet || '',
-          isRead: email.isRead !== undefined ? email.isRead : true,
-          isImportant: email.isImportant || email.isStarred || false,
-          to: typeof email.to === 'string' ? email.to : 
-            (email.to?.email || email.to?.name || email.toEmail || ''),
-          cc: typeof email.cc === 'string' ? email.cc : 
-            (email.cc?.email || email.cc?.name || ''),
-          attachments: Array.isArray(email.attachments) ? 
-            email.attachments.map((a: any) => typeof a === 'string' ? a : (a.name || a.filename || a.id || 'Attachment')) : [],
-          labels: Array.isArray(email.labels || email.labelIds) ? 
-            (email.labels || email.labelIds).map((l: any) => typeof l === 'string' ? l : (l.name || l.id || 'Label')) : [],
-          body: email.body || email.textPlain || email.textHtml || ''
-        }));
-        // Force refresh by clearing then setting
-        console.log(`✅ Setting ${mappedEmails.length} emails to state`);
-        setEmails([]);
-        setTimeout(() => {
-          setEmails(mappedEmails);
-          // Save to localStorage
-          const timestamp = new Date().toISOString();
-          localStorage.setItem('dashboard_emails', JSON.stringify(mappedEmails));
-          localStorage.setItem('dashboard_emails_timestamp', timestamp);
-          setLastEmailLoad(timestamp);
-          setWebhookStatus(`✅ ${mappedEmails.length} emails loaded!`);
-          setTimeout(() => setWebhookStatus(''), 3000);
-        }, 100);
-      } else {
-        console.warn('⚠️ No emails in response or empty array');
-        setEmails([]); // Ensure empty if no data
-        setWebhookStatus('⚠️ No emails found');
-        setTimeout(() => setWebhookStatus(''), 3000);
-      }
-    } catch (err) {
-      console.error('Failed to fetch emails:', err);
-      setWebhookStatus('❌ Failed to fetch emails');
-      setTimeout(() => setWebhookStatus(''), 3000);
-    } finally {
-      setEmailLoading(false);
-    }
-  };
+  // Keyboard shortcuts
+  const handleRefresh = useCallback(() => {
+    refetchEmails();
+    refetchEvents();
+  }, [refetchEmails, refetchEvents]);
 
-  const fetchEvents = async () => {
-    try {
-      setEventLoading(true);
-      setWebhookStatus('🔄 Triggering calendar refresh...');
-      
-      // Use our server-side trigger endpoint (no CORS issues)
-      const apiUrl = window.location.hostname === 'localhost' 
-        ? 'http://localhost:8788' 
-        : 'https://ailifeassistanttm.com';
-      
-      console.log('Triggering calendar workflow via:', `${apiUrl}/api/trigger/calendar`);
-      
-      const triggerResponse = await fetch(`${apiUrl}/api/trigger/calendar`);
-      const triggerResult = await triggerResponse.json();
-      
-      if (triggerResult.success) {
-        console.log('Calendar workflow triggered:', triggerResult);
-        setWebhookStatus('✅ Calendar workflow started!');
-      } else {
-        console.error('Failed to trigger workflow:', triggerResult);
-        setWebhookStatus('❌ Failed to trigger workflow');
-      }
-      
-      // Wait longer for the n8n workflow to complete and post data
-      console.log('Waiting for workflow to complete...');
-      setWebhookStatus('⏳ Waiting for data update...');
-      await new Promise(resolve => setTimeout(resolve, 6000));
-      
-      // Fetch with cache-busting to ensure fresh data
-      const timestamp = Date.now();
-      const calendarUrl = `${apiUrl}/api/webhook/calendar?t=${timestamp}`;
-      console.log('Fetching fresh calendar from:', calendarUrl);
-      
-      const response = await fetch(calendarUrl, {
-        cache: 'no-cache',
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
-      });
-      const data = await response.json();
-      console.log('Calendar data received:', data);
-      
-      if (data.events && Array.isArray(data.events)) {
-        const mappedEvents = data.events.slice(0, 10).map((event: any) => ({
-          id: event.id || Math.random().toString(),
-          title: event.summary || event.title || 'Untitled Event',
-          startTime: event.start || event.startTime || event.start?.dateTime || event.start?.date || '',
-          endTime: event.end || event.endTime || event.end?.dateTime || event.end?.date || '',
-          status: event.status || 'confirmed',
-          location: event.location || '',
-          description: event.description || '',
-          attendees: Array.isArray(event.attendees) ? 
-            event.attendees.map((a: any) => typeof a === 'string' ? a : (a.email || a.displayName || 'Unknown')) : [],
-          organizer: typeof event.organizer === 'string' ? event.organizer : 
-            (event.organizer?.email || event.organizer?.displayName || event.creator || ''),
-          meetingUrl: extractMeetingUrl(event),
-          conferenceData: event.conferenceData || null,
-          isAllDay: event.isAllDay || false
-        }));
-        // Force refresh by clearing then setting
-        setEvents([]);
-        setTimeout(() => {
-          setEvents(mappedEvents);
-          // Save to localStorage
-          const timestamp = new Date().toISOString();
-          localStorage.setItem('dashboard_events', JSON.stringify(mappedEvents));
-          localStorage.setItem('dashboard_events_timestamp', timestamp);
-          setLastEventLoad(timestamp);
-          // Update combined schedule
-          updateScheduleItems(mappedEvents);
-          setWebhookStatus('✅ Calendar updated!');
-          setTimeout(() => setWebhookStatus(''), 2000);
-        }, 100);
-      }
-    } catch (err) {
-      console.error('Failed to fetch events:', err);
-      setWebhookStatus('❌ Failed to fetch calendar');
-      setTimeout(() => setWebhookStatus(''), 3000);
-    } finally {
-      setEventLoading(false);
+  const handleNewTask = useCallback(() => {
+    // Trigger new task modal or action
+    console.log('New task shortcut triggered');
+    // You can dispatch an event or open a modal here
+  }, []);
+
+  const handleQuickAction = useCallback(() => {
+    if (selectedEmail) {
+      setReplyModal({ show: true, email: selectedEmail });
     }
-  };
+  }, [selectedEmail]);
+
+  const handleDelete = useCallback(() => {
+    if (selectedEmail) {
+      // Handle email deletion
+      console.log('Delete email:', selectedEmail.id);
+    }
+  }, [selectedEmail]);
+
+  const navigateEmails = useCallback((direction: 'up' | 'down') => {
+    const currentIndex = emails.findIndex(e => e.id === selectedEmail?.id);
+    let newIndex = currentIndex;
+
+    if (direction === 'up' && currentIndex > 0) {
+      newIndex = currentIndex - 1;
+    } else if (direction === 'down' && currentIndex < emails.length - 1) {
+      newIndex = currentIndex + 1;
+    }
+
+    if (newIndex >= 0 && newIndex < emails.length) {
+      setSelectedEmail(emails[newIndex]);
+      setSelectedIndex(newIndex);
+    }
+  }, [emails, selectedEmail]);
+
+  // Register keyboard shortcuts
+  useKeyboardShortcuts([
+    { key: 'k', cmd: true, handler: () => setShowCommandPalette(true) },
+    { key: '?', shift: true, handler: () => setShowShortcuts(true) },
+    { key: 'r', cmd: true, handler: handleRefresh, preventDefault: true },
+    { key: 'n', cmd: true, handler: handleNewTask },
+    { key: 'Enter', cmd: true, handler: handleQuickAction },
+    { key: 'd', cmd: true, handler: handleDelete, preventDefault: true },
+    { key: 'ArrowUp', handler: () => navigateEmails('up') },
+    { key: 'ArrowDown', handler: () => navigateEmails('down') },
+    { key: 'Escape', handler: () => {
+      setSelectedEmail(null);
+      setSelectedEvent(null);
+      setReplyModal({ show: false, email: null });
+    }}
+  ]);
+
+  // These functions are now replaced by useOptimizedData hooks above
 
   // Helper function to check if a date is today
   const isToday = (dateString: string | undefined | null) => {
@@ -372,93 +432,38 @@ export default function SimpleDashboard() {
     }
   };
 
-  // Load data from localStorage on mount
+  // Load schedule items from localStorage on mount
   useEffect(() => {
-    // Load emails from localStorage
-    const savedEmails = localStorage.getItem('dashboard_emails');
-    const emailTimestamp = localStorage.getItem('dashboard_emails_timestamp');
-    if (savedEmails) {
-      try {
-        setEmails(JSON.parse(savedEmails));
-        setLastEmailLoad(emailTimestamp);
-      } catch (e) {
-        console.error('Failed to parse saved emails');
-      }
-    }
-    
-    // Load events from localStorage
-    const savedEvents = localStorage.getItem('dashboard_events');
-    const eventTimestamp = localStorage.getItem('dashboard_events_timestamp');
-    if (savedEvents) {
-      try {
-        const parsedEvents = JSON.parse(savedEvents);
-        setEvents(parsedEvents);
-        setLastEventLoad(eventTimestamp);
-        updateScheduleItems(parsedEvents);
-      } catch (e) {
-        console.error('Failed to parse saved events');
-      }
-    }
-    
     // Load and clean up schedule items from localStorage
     const savedSchedule = localStorage.getItem('dashboard_schedule');
     if (savedSchedule) {
       try {
         const allScheduleItems = JSON.parse(savedSchedule);
-        console.log('All schedule items from localStorage:', allScheduleItems);
-        
+
         // Clean up past events (keep today and future)
         const activeScheduleItems = allScheduleItems.filter((item: ScheduleItem) => {
           const isPast = isPastEvent(item.startTime);
           if (isPast) {
-            console.log(`Removing past event: "${item.title}" from ${item.startTime}`);
             return false;
           }
           return true;
         });
-        
+
         // Save cleaned up list back to localStorage
         if (activeScheduleItems.length !== allScheduleItems.length) {
           localStorage.setItem('dashboard_schedule', JSON.stringify(activeScheduleItems));
-          console.log('Cleaned up past events from schedule');
         }
-        
+
         // Show only today's items in the timeline
         const parsedSchedule = activeScheduleItems.filter((item: ScheduleItem) => {
-          const todayCheck = isToday(item.startTime);
-          console.log(`Schedule item "${item.title}" at ${item.startTime} is today: ${todayCheck}`);
-          return todayCheck;
+          return isToday(item.startTime);
         });
-        
-        console.log('Today\'s schedule items:', parsedSchedule);
-        
-        // Combine with today's calendar events if any exist
-        const calendarItems = savedEvents ? JSON.parse(savedEvents)
-          .filter((event: any) => isToday(event.startTime) || isToday(event.endTime))
-          .map((event: any) => ({
-            id: event.id,
-            title: event.title,
-            startTime: event.startTime,
-            endTime: event.endTime,
-            type: 'calendar' as const,
-            description: event.description,
-            location: event.location,
-            status: event.status
-          })) : [];
-        
-        setScheduleItems([...parsedSchedule, ...calendarItems].sort((a, b) => {
-          const dateA = new Date(a.startTime).getTime();
-          const dateB = new Date(b.startTime).getTime();
-          return dateA - dateB;
-        }));
+
+        setScheduleItems(parsedSchedule);
       } catch (e) {
         console.error('Failed to parse saved schedule');
       }
     }
-    
-    setEmailLoading(false);
-    setEventLoading(false);
-    console.log('Dashboard initialized with cached data');
   }, []);
 
   // Listen for schedule updates from Schedule page
@@ -569,7 +574,20 @@ export default function SimpleDashboard() {
 
 
   return (
-    <div className="mobile-container mobile-safe-area mobile-scroll" style={containerStyle}>
+    <div className="simple-dashboard-root" data-testid="dashboard-container">
+      {/* Keyboard Shortcuts Modal */}
+      <KeyboardShortcutsModal isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
+
+      {/* Command Palette */}
+      <CommandPalette isOpen={showCommandPalette} onClose={() => setShowCommandPalette(false)} />
+
+      <div
+        className="mobile-container mobile-safe-area mobile-scroll"
+        style={containerStyle}
+        data-testid="dashboard-scroll-region"
+      >
+      <OfflineIndicator />
+      <PWAInstallPrompt />
       {/* Header */}
       <header className="mobile-mb text-center border-b border-border pb-4">
         <h1 className="text-2xl font-bold mb-2 text-primary">
@@ -593,14 +611,21 @@ export default function SimpleDashboard() {
       )}
 
       {/* Today's Timeline - Enhanced Mobile-First Schedule */}
-      <TimelineSchedule 
-        calendarEvents={events}
-        scheduleItems={scheduleItems}
-        className="mb-6"
-      />
+      <div data-testid="agenda-section">
+        <TimelineSchedule
+          calendarEvents={events}
+          scheduleItems={scheduleItems}
+          className="mb-6"
+        />
+      </div>
+
+      {/* Smart Task List - AI Prioritized Tasks */}
+      <div className="mb-6">
+        <SmartTaskList />
+      </div>
 
       {/* Emails Section */}
-      <section style={sectionStyle}>
+      <section style={sectionStyle} data-testid="emails-section">
         <div style={headerStyle}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -615,7 +640,7 @@ export default function SimpleDashboard() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
-              onClick={fetchEmails}
+              onClick={() => refetchEmails()}
               disabled={emailLoading}
               style={{
                 background: 'rgba(0, 212, 255, 0.2)',
@@ -654,8 +679,12 @@ export default function SimpleDashboard() {
           position: 'relative'
         }}>
           {emailLoading ? (
-            <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>
-              Loading emails...
+            <div className="space-y-1">
+              <EmailSkeleton />
+              <EmailSkeleton />
+              <EmailSkeleton />
+              <EmailSkeleton />
+              <EmailSkeleton />
             </div>
           ) : emails.length === 0 ? (
             <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>
@@ -665,77 +694,82 @@ export default function SimpleDashboard() {
               </div>
             </div>
           ) : (
-            emails.map((email) => (
-              <div
-                key={email.id}
-                className="email-item"
-                style={{
-                  ...itemStyle,
-                  ...(email.isRead ? {} : { borderLeft: '3px solid #00d4ff', background: 'rgba(0, 212, 255, 0.03)' }),
-                  pointerEvents: 'auto',
-                  position: 'relative'
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  console.log('Email clicked:', email);
-                  setSelectedEmail(email);
-                }}
-              >
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'start',
-                  marginBottom: '4px'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1 }}>
-                    {email.isImportant && (
-                      <Star style={{ 
-                        width: '12px', 
-                        height: '12px', 
-                        color: '#f59e0b', 
-                        fill: '#f59e0b' 
-                      }} />
-                    )}
+            <VirtualList
+              items={emails}
+              itemHeight={80}
+              renderItem={(email, index) => (
+                <div
+                  key={email.id}
+                  className="email-item"
+                  style={{
+                    ...itemStyle,
+                    ...(email.isRead
+                      ? {}
+                      : {
+                          borderLeft: '3px solid #00d4ff',
+                          background: 'rgba(0, 212, 255, 0.03)'
+                        })
+                  }}
+                  onClick={() => handleSelectEmail(email)}
+                >
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'start',
+                    marginBottom: '4px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1 }}>
+                      {email.isImportant && (
+                        <Star style={{
+                          width: '12px',
+                          height: '12px',
+                          color: '#f59e0b',
+                          fill: '#f59e0b'
+                        }} />
+                      )}
+                      <span style={{
+                        fontSize: '13px',
+                        fontWeight: email.isRead ? 400 : 600,
+                        color: email.isRead ? '#94a3b8' : '#f0f4ff'
+                      }}>
+                        {email.from}
+                      </span>
+                    </div>
                     <span style={{
-                      fontSize: '13px',
-                      fontWeight: email.isRead ? 400 : 600,
-                      color: email.isRead ? '#94a3b8' : '#f0f4ff'
+                      fontSize: '11px',
+                      color: '#64748b'
                     }}>
-                      {email.from}
+                      {email.date ? formatDistanceToNow(new Date(email.date), { addSuffix: true }) : ''}
                     </span>
                   </div>
-                  <span style={{
-                    fontSize: '11px',
-                    color: '#64748b'
-                  }}>
-                    {email.date ? formatDistanceToNow(new Date(email.date), { addSuffix: true }) : ''}
-                  </span>
-                </div>
-                <div style={{
-                  fontSize: '13px',
-                  fontWeight: email.isRead ? 400 : 600,
-                  color: email.isRead ? '#cbd5e1' : '#f0f4ff',
-                  marginBottom: '4px'
-                }}>
-                  {email.subject || 'No Subject'}
-                </div>
-                {email.preview && (
                   <div style={{
-                    fontSize: '11px',
-                    color: '#64748b',
-                    lineHeight: '1.3'
+                    fontSize: '13px',
+                    fontWeight: email.isRead ? 400 : 600,
+                    color: email.isRead ? '#cbd5e1' : '#f0f4ff',
+                    marginBottom: '4px'
                   }}>
-                    {email.preview.substring(0, 100)}...
+                    {email.subject || 'No Subject'}
                   </div>
-                )}
-              </div>
-            ))
+                  {email.preview && (
+                    <div style={{
+                      fontSize: '11px',
+                      color: '#64748b',
+                      lineHeight: '1.3'
+                    }}>
+                      {email.preview.substring(0, 100)}...
+                    </div>
+                  )}
+                </div>
+              )}
+              className="h-[300px]"
+              overscan={2}
+            />
           )}
         </div>
       </section>
 
       {/* Calendar Section */}
-      <section style={sectionStyle}>
+      <section style={sectionStyle} data-testid="calendar-section">
         <div style={headerStyle}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -750,7 +784,7 @@ export default function SimpleDashboard() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
-              onClick={fetchEvents}
+              onClick={() => refetchEvents()}
               disabled={eventLoading}
               style={{
                 background: 'rgba(6, 182, 212, 0.2)',
@@ -789,15 +823,21 @@ export default function SimpleDashboard() {
           position: 'relative'
         }}>
           {eventLoading ? (
-            <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>
-              Loading events...
+            <div className="space-y-1">
+              <EventSkeleton />
+              <EventSkeleton />
+              <EventSkeleton />
+              <EventSkeleton />
             </div>
           ) : events.length === 0 ? (
             <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>
               No events found
             </div>
           ) : (
-            events.map((event) => (
+            <VirtualList
+              items={events}
+              itemHeight={90}
+              renderItem={(event, index) => (
               <div
                 key={event.id}
                 className="calendar-item"
@@ -886,7 +926,10 @@ export default function SimpleDashboard() {
                   </span>
                 </div>
               </div>
-            ))
+              )}
+              className="h-[300px]"
+              overscan={2}
+            />
           )}
         </div>
       </section>
@@ -1306,6 +1349,203 @@ export default function SimpleDashboard() {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
           }
+
+          /* PWA Install Prompt Styles */
+          .pwa-install-prompt {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #0f1729, #1a2332);
+            border: 2px solid #00d4ff;
+            border-radius: 16px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.3);
+            z-index: 50;
+            max-width: 90vw;
+            backdrop-filter: blur(10px);
+          }
+
+          .pwa-install-content {
+            flex: 1;
+          }
+
+          .pwa-install-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #f0f4ff;
+            margin-bottom: 2px;
+          }
+
+          .pwa-install-subtitle {
+            font-size: 12px;
+            color: #94a3b8;
+          }
+
+          .pwa-install-buttons {
+            display: flex;
+            gap: 8px;
+          }
+
+          .pwa-install-button.primary {
+            background: linear-gradient(135deg, #00d4ff, #06b6d4);
+            color: #0a0e1a;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+          }
+
+          .pwa-install-button.primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+          }
+
+          .pwa-install-button.secondary {
+            background: transparent;
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .pwa-install-button.secondary:hover {
+            color: #cbd5e1;
+            border-color: #94a3b8;
+          }
+
+          /* Offline Indicator Styles */
+          .offline-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(15, 23, 41, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #f0f4ff;
+            backdrop-filter: blur(10px);
+            z-index: 45;
+            cursor: pointer;
+            transition: all 0.2s ease;
+          }
+
+          .offline-indicator:hover {
+            background: rgba(15, 23, 41, 1);
+            border-color: rgba(0, 212, 255, 0.3);
+          }
+
+          .offline-status {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+          }
+
+          .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 8px;
+            padding-left: 8px;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+          }
+
+          .sync-button {
+            background: transparent;
+            border: none;
+            color: #00d4ff;
+            cursor: pointer;
+            padding: 2px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+          }
+
+          .sync-button:hover {
+            background: rgba(0, 212, 255, 0.1);
+          }
+
+          .sync-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+
+          .offline-details {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            background: rgba(15, 23, 41, 0.98);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            max-width: 300px;
+            backdrop-filter: blur(10px);
+            z-index: 46;
+          }
+
+          .offline-details h3 {
+            margin: 0 0 12px 0;
+            color: #00d4ff;
+            font-size: 14px;
+          }
+
+          .queue-list {
+            margin-bottom: 12px;
+          }
+
+          .queue-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 11px;
+          }
+
+          .queue-type {
+            color: #00d4ff;
+            font-weight: 500;
+          }
+
+          .queue-time {
+            color: #94a3b8;
+          }
+
+          .queue-attempts {
+            color: #f59e0b;
+          }
+
+          .sync-all-button {
+            background: linear-gradient(135deg, #00d4ff, #06b6d4);
+            color: #0a0e1a;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s ease;
+          }
+
+          .sync-all-button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+          }
           
           @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-10px); }
@@ -1424,11 +1664,7 @@ export default function SimpleDashboard() {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 60,
-          padding: '16px',
-          '@media (max-width: 768px)': {
-            alignItems: 'flex-end',
-            padding: '0'
-          }
+          padding: '16px'
         }} onClick={() => {
           setReplyModal({ show: false, email: null });
           setReplyText('');
@@ -1642,7 +1878,7 @@ export default function SimpleDashboard() {
                     };
                     
                     console.log('Sending reply to webhook:', {
-                      emailId: payload.emailId,
+                      sessionId: payload.sessionId,
                       replyLength: replyText.length
                     });
                     
@@ -1723,5 +1959,136 @@ export default function SimpleDashboard() {
         </div>
       )}
     </div>
+    </div>
   );
 }
+
+interface EmailListItemProps {
+  email: Email;
+  provided: DraggableProvided;
+  snapshot: DraggableStateSnapshot;
+  onSelect: (email: Email) => void;
+  onArchive: (emailId: string) => void;
+  baseStyle: React.CSSProperties;
+}
+
+function EmailListItem({
+  email,
+  provided,
+  snapshot,
+  onSelect,
+  onArchive,
+  baseStyle
+}: EmailListItemProps) {
+  const bindGesture = useSwipeGesture({
+    onSwipeLeft: () => onArchive(email.id)
+  });
+
+  const dragStyle = (provided.draggableProps.style || {}) as React.CSSProperties;
+
+  return (
+    <div
+      ref={provided.innerRef}
+      {...provided.draggableProps}
+      {...bindGesture()}
+      className={cn('email-item', snapshot.isDragging && 'dragging')}
+      style={{
+        ...baseStyle,
+        ...(email.isRead
+          ? {}
+          : {
+              borderLeft: '3px solid #00d4ff',
+              background: 'rgba(0, 212, 255, 0.03)'
+            }),
+        pointerEvents: 'auto',
+        position: 'relative',
+        ...dragStyle
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect(email);
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'start',
+          marginBottom: '4px'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1 }}>
+          <span className="drag-handle" {...(provided.dragHandleProps ?? {})}>
+            <Move style={{ width: 12, height: 12 }} />
+          </span>
+          {email.isImportant && (
+            <Star
+              style={{
+                width: '12px',
+                height: '12px',
+                color: '#f59e0b',
+                fill: '#f59e0b'
+              }}
+            />
+          )}
+          <span
+            style={{
+              fontSize: '13px',
+              fontWeight: email.isRead ? 400 : 600,
+              color: email.isRead ? '#94a3b8' : '#f0f4ff'
+            }}
+          >
+            {email.from}
+          </span>
+        </div>
+        <span
+          style={{
+            fontSize: '11px',
+            color: '#64748b'
+          }}
+        >
+          {email.date ? formatDistanceToNow(new Date(email.date), { addSuffix: true }) : ''}
+        </span>
+      </div>
+
+      <div
+        style={{
+          fontSize: '13px',
+          fontWeight: email.isRead ? 400 : 600,
+          color: email.isRead ? '#cbd5e1' : '#f0f4ff',
+          marginBottom: '4px'
+        }}
+      >
+        {email.subject || 'No Subject'}
+      </div>
+
+      {email.preview && (
+        <div
+          style={{
+            fontSize: '11px',
+            color: '#64748b',
+            lineHeight: '1.3'
+          }}
+        >
+          {email.preview.substring(0, 100)}...
+        </div>
+      )}
+
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginTop: '8px',
+          fontSize: '10px',
+          color: '#475569'
+        }}
+      >
+        <span>Swipe left to archive</span>
+        <span>Drag handle to reorder</span>
+      </div>
+    </div>
+  );
+}
+
+export default SimpleDashboard;

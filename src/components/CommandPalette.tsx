@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, Command, Calendar, CheckSquare, Apple, Package, BookOpen, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useCommandSearch, useSearchHighlight } from '@/hooks/useAdvancedSearch';
 import '../styles/tokens.css';
 
 interface CommandItem {
@@ -11,11 +12,17 @@ interface CommandItem {
   shortcut?: string;
   action: () => void;
   category: 'quick' | 'add' | 'view' | 'system';
+  keywords?: string[];
 }
 
-export function CommandPalette() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [query, setQuery] = useState('');
+interface CommandPaletteProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function CommandPalette({ isOpen: externalIsOpen, onClose }: CommandPaletteProps = {}) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -30,7 +37,8 @@ export function CommandPalette() {
       icon: BookOpen,
       shortcut: '/summarize',
       action: () => handleCommand('/summarize today'),
-      category: 'quick'
+      category: 'quick',
+      keywords: ['ai', 'overview', 'report']
     },
     {
       id: 'jump-now',
@@ -127,7 +135,11 @@ export function CommandPalette() {
       dispatchAICommand('queue_reorder', { item });
     }
 
-    setIsOpen(false);
+    if (onClose) {
+      onClose();
+    } else {
+      setInternalIsOpen(false);
+    }
     setQuery('');
   };
 
@@ -146,13 +158,19 @@ export function CommandPalette() {
     }));
   };
 
-  // Filter commands based on query
-  const filteredCommands = commands.filter(cmd => {
-    const searchStr = query.toLowerCase();
-    return cmd.label.toLowerCase().includes(searchStr) ||
-           cmd.description.toLowerCase().includes(searchStr) ||
-           cmd.shortcut?.toLowerCase().includes(searchStr);
-  });
+  // Advanced search with Fuse.js
+  const {
+    query,
+    setQuery,
+    results: searchResults,
+    isSearching,
+    searchHistory
+  } = useCommandSearch(commands);
+
+  const { highlightText } = useSearchHighlight();
+
+  // Get filtered commands from search results
+  const filteredCommands = searchResults.map(result => result.item);
 
   // Keyboard navigation
   useEffect(() => {
@@ -160,7 +178,9 @@ export function CommandPalette() {
       // Open with Cmd/Ctrl + K
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        setIsOpen(!isOpen);
+        if (externalIsOpen === undefined) {
+          setInternalIsOpen(!internalIsOpen);
+        }
         if (!isOpen) {
           setTimeout(() => inputRef.current?.focus(), 100);
         }
@@ -185,11 +205,19 @@ export function CommandPalette() {
           handleCommand(query);
         } else if (filteredCommands[selectedIndex]) {
           filteredCommands[selectedIndex].action();
-          setIsOpen(false);
+          if (onClose) {
+      onClose();
+    } else {
+      setInternalIsOpen(false);
+    }
           setQuery('');
         }
       } else if (e.key === 'Escape') {
-        setIsOpen(false);
+        if (onClose) {
+      onClose();
+    } else {
+      setInternalIsOpen(false);
+    }
         setQuery('');
       }
     };
@@ -210,7 +238,13 @@ export function CommandPalette() {
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[var(--z-command)]"
-        onClick={() => setIsOpen(false)}
+        onClick={() => {
+          if (onClose) {
+            onClose();
+          } else {
+            setInternalIsOpen(false);
+          }
+        }}
       />
 
       {/* Command Palette */}
@@ -272,7 +306,11 @@ export function CommandPalette() {
                           key={cmd.id}
                           onClick={() => {
                             cmd.action();
-                            setIsOpen(false);
+                            if (onClose) {
+      onClose();
+    } else {
+      setInternalIsOpen(false);
+    }
                             setQuery('');
                           }}
                           className={cn(

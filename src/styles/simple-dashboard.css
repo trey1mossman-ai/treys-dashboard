@@ -1,0 +1,66 @@
+/* SimpleDashboard responsive styles */
+@media (max-width: 640px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1025px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.reply-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  padding: 16px;
+}
+
+@media (max-width: 768px) {
+  .reply-modal {
+    align-items: flex-end;
+    padding: 0;
+  }
+}
+
+.email-item {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+  touch-action: pan-y;
+}
+
+.email-item.dragging {
+  box-shadow: 0 20px 40px rgba(0, 212, 255, 0.25);
+  transform: scale(1.02);
+}
+
+.email-item .drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  margin-right: 6px;
+  border-radius: 6px;
+  color: rgba(148, 163, 184, 0.7);
+  cursor: grab;
+  transition: color 0.18s ease, background-color 0.18s ease;
+}
+
+.email-item .drag-handle:hover {
+  color: #00d4ff;
+  background: rgba(0, 212, 255, 0.12);
+}

@@ -1,7 +1,6 @@
-import { Calendar, Home, Dumbbell, MessageSquare, Settings, Clock, FileDown, CalendarCheck } from 'lucide-react'
+import { Calendar, Home, Dumbbell, MessageSquare, Settings, Clock, FileDown, CalendarCheck, FolderKanban } from 'lucide-react'
 import { Button } from './ui/button'
 import { Link, useLocation } from 'react-router-dom'
-import { InstallPWA } from './InstallPWA'
 import { LiveClock } from './LiveClock'
 import { useUIStore } from '@/state/useUIStore'
 import { useEffect, useState } from 'react'
@@ -39,6 +38,7 @@ export function Header({ onJumpToNow, onExport }: HeaderProps) {
   
   const navItems = [
     { path: '/', icon: Home, label: 'Dashboard' },
+    { path: '/projects', icon: FolderKanban, label: 'Projects' },
     { path: '/schedule', icon: CalendarCheck, label: 'Schedule' },
     { path: '/workflows', icon: MessageSquare, label: 'Workflows' },
     { path: '/fitness', icon: Dumbbell, label: 'Fitness' },
@@ -101,7 +101,6 @@ export function Header({ onJumpToNow, onExport }: HeaderProps) {
               />
             )}
             
-            <InstallPWA />
           </nav>
         </div>
       </div>

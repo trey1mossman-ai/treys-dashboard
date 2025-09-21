@@ -20,6 +20,9 @@ const MissionControlManage = lazy(() => import('@/pages/MissionControlManage'))
 const MissionControlSettings = lazy(() => import('@/pages/MissionControlSettings'))
 const TestPage = lazy(() => import('@/pages/TestPage'))
 const SimpleDashboard = lazy(() => import('@/pages/SimpleDashboard'))
+const Day3Demo = lazy(() => import('@/pages/Day3Demo'))
+const ProjectBoard = lazy(() => import('@/pages/ProjectBoard'))
+const LifeOS = lazy(() => import('@/pages/LifeOS').then(m => ({ default: m.LifeOS })))
 
 // Loading wrapper for lazy loaded components with error boundary
 function LazyRoute({ Component }: { Component: React.LazyExoticComponent<React.ComponentType> }) {
@@ -87,6 +90,18 @@ const router = createBrowserRouter([
       {
         path: 'mission-control/settings',
         element: <LazyRoute Component={MissionControlSettings} />
+      },
+      {
+        path: 'day3',
+        element: <LazyRoute Component={Day3Demo} />
+      },
+      {
+        path: 'projects',
+        element: <LazyRoute Component={ProjectBoard} />
+      },
+      {
+        path: 'lifeos',
+        element: <LazyRoute Component={LifeOS} />
       }
     ]
   }

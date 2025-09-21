@@ -4,6 +4,12 @@ export interface Note {
   tag?: string;
   status: 'active' | 'archived' | 'deleted';
   created_at?: string;
+  updated_at?: string;
+  /**
+   * Some integrations provide `content` instead of `body`.
+   * Keep it optional so event payloads can be normalized easily.
+   */
+  content?: string;
 }
 
 export type NoteTag = 'urgent' | 'idea' | 'reminder' | 'task' | 'general';

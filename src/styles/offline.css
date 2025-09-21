@@ -1,0 +1,252 @@
+/* Offline Indicator Styles */
+.offline-indicator {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.offline-indicator:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  transform: translateY(-1px);
+}
+
+.offline-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.sync-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 12px;
+  border-left: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.sync-button {
+  padding: 4px;
+  background: transparent;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.sync-button:hover:not(:disabled) {
+  background: rgba(168, 132, 255, 0.1);
+}
+
+.sync-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.offline-details {
+  position: fixed;
+  top: 70px;
+  right: 20px;
+  width: 320px;
+  max-height: 400px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  z-index: 999;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.offline-details h3 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.queue-list {
+  flex: 1;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+}
+
+.queue-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  margin-bottom: 4px;
+  background: var(--muted);
+  border-radius: 6px;
+  font-size: 12px;
+  gap: 8px;
+}
+
+.queue-type {
+  font-weight: 500;
+  color: var(--primary);
+  flex: 1;
+}
+
+.queue-time {
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+
+.queue-attempts {
+  color: var(--destructive);
+  font-size: 11px;
+}
+
+.sync-all-button {
+  width: 100%;
+  padding: 8px 16px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sync-all-button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* Offline mode visual cues */
+body.offline {
+  border-top: 3px solid #f59e0b;
+}
+
+body.offline .card {
+  position: relative;
+}
+
+body.offline .card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  background: #f59e0b;
+  border-radius: 50%;
+  margin: 8px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* PWA Install Prompt */
+.pwa-install-prompt {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 1000;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  max-width: 90vw;
+}
+
+.pwa-install-content {
+  flex: 1;
+}
+
+.pwa-install-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 4px;
+}
+
+.pwa-install-subtitle {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.pwa-install-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.pwa-install-button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.pwa-install-button.primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.pwa-install-button.secondary {
+  background: transparent;
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
+}
+
+.pwa-install-button:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .offline-indicator {
+    top: 10px;
+    right: 10px;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .offline-details {
+    right: 10px;
+    left: 10px;
+    width: auto;
+  }
+  
+  .pwa-install-prompt {
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    transform: none;
+    width: auto;
+  }
+}

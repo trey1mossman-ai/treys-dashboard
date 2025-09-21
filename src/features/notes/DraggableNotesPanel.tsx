@@ -38,16 +38,17 @@ function DraggableNote({ note, onDelete, index, isHighlighted }: DraggableNotePr
     <div
       ref={elementRef}
       className={cn(
-        "absolute w-52 bg-card border border-border rounded-lg shadow-lg elevation-medium",
-        "transition-shadow duration-200",
-        isDragging && "shadow-2xl elevation-high cursor-grabbing z-50",
-        !isDragging && "hover:shadow-xl cursor-grab",
-        isHighlighted && !isDragging && "ring-2 ring-cyan-400/80 shadow-xl animate-pulse"
+        'absolute w-52 bg-card border border-border rounded-lg shadow-lg elevation-medium',
+        'transition-shadow duration-200',
+        isDragging && 'shadow-2xl elevation-high cursor-grabbing z-50',
+        !isDragging && 'hover:shadow-xl cursor-grab',
+        isHighlighted && !isDragging && 'ring-2 ring-cyan-400/80 shadow-xl animate-pulse'
       )}
       style={{
         transform: `translate(${position.x}px, ${position.y}px)`,
         transition: isDragging ? 'none' : 'box-shadow 200ms'
       }}
+      data-testid="sticky-note"
     >
       <div
         className="flex items-center justify-between p-2 border-b border-border cursor-grab active:cursor-grabbing"
@@ -88,6 +89,22 @@ export const DraggableNotesPanel: React.FC = () => {
   const [newNoteText, setNewNoteText] = useState('');
   const [highlightedNoteId, setHighlightedNoteId] = useState<string | null>(null);
   const { toast } = useToast();
+
+  type NoteEventDetail = Partial<Note> & { content?: string };
+
+  const normalizeNote = (detail: NoteEventDetail): Note => {
+    const body = (detail.body ?? detail.content ?? '').toString();
+    const id = detail.id ?? `note-${Date.now()}`;
+    return {
+      id,
+      body,
+      content: body,
+      tag: detail.tag ?? 'general',
+      status: detail.status ?? 'active',
+      created_at: detail.created_at ?? new Date().toISOString(),
+      updated_at: detail.updated_at ?? new Date().toISOString()
+    };
+  };
 
   const loadNotes = async () => {
     try {
@@ -131,36 +148,24 @@ export const DraggableNotesPanel: React.FC = () => {
 
   useEffect(() => {
     const handleCreated = (event: Event) => {
-      const { detail } = event as CustomEvent<Partial<Note>>;
+      const { detail } = event as CustomEvent<NoteEventDetail>;
       if (!detail) {
         loadNotes();
         return;
       }
 
-      let createdId = '';
+      const normalized = normalizeNote(detail);
 
       setNotes(prev => {
-        const sanitized: Note = {
-          id: detail.id ?? `note-${Date.now()}`,
-          body: detail.body ?? detail.content ?? '',
-          tag: detail.tag ?? 'todo',
-          created_at: detail.created_at ?? new Date().toISOString(),
-          updated_at: detail.updated_at ?? new Date().toISOString()
-        } as Note;
-
-        createdId = sanitized.id;
-
-        const existing = prev.filter(note => note.id !== sanitized.id);
-        return [sanitized, ...existing].slice(0, 6);
+        const existing = prev.filter(note => note.id !== normalized.id);
+        return [normalized, ...existing].slice(0, 6);
       });
 
-      if (createdId) {
-        setHighlightedNoteId(createdId);
-      }
+      setHighlightedNoteId(normalized.id);
     };
 
     const handleUpdated = (event: Event) => {
-      const { detail } = event as CustomEvent<Partial<Note>>;
+      const { detail } = event as CustomEvent<NoteEventDetail>;
       if (!detail?.id) return;
 
       setNotes(prev =>
@@ -168,8 +173,10 @@ export const DraggableNotesPanel: React.FC = () => {
           note.id === detail.id
             ? {
                 ...note,
-                body: detail.body ?? detail.content ?? note.body,
+                body: (detail.body ?? detail.content ?? note.body)?.toString() ?? note.body,
+                content: (detail.body ?? detail.content ?? note.body)?.toString() ?? note.body,
                 tag: detail.tag ?? note.tag,
+                status: detail.status ?? note.status,
                 updated_at: detail.updated_at ?? new Date().toISOString()
               }
             : note
@@ -207,7 +214,7 @@ export const DraggableNotesPanel: React.FC = () => {
     if (!newNoteText.trim()) return;
     
     try {
-      await notesService.create(newNoteText, 'todo');
+      await notesService.create(newNoteText, 'general');
       toast({
         title: 'Success',
         description: 'Note created successfully'
@@ -245,14 +252,15 @@ export const DraggableNotesPanel: React.FC = () => {
       <button
         onClick={() => setIsExpanded(true)}
         className={cn(
-          "fixed top-20 right-6 z-40",
-          "px-4 py-2 rounded-lg",
-          "bg-card border border-border",
-          "flex items-center gap-2",
-          "shadow-md hover:shadow-lg",
-          "transition-all duration-200",
-          "hover:scale-105"
+          'fixed top-20 right-6 z-40',
+          'px-4 py-2 rounded-lg',
+          'bg-card border border-border',
+          'flex items-center gap-2',
+          'shadow-md hover:shadow-lg',
+          'transition-all duration-200',
+          'hover:scale-105'
         )}
+        data-testid="notes-board-toggle"
       >
         <StickyNote className="w-4 h-4 text-primary" />
         <span className="text-sm font-medium">Notes ({notes.length})</span>
@@ -269,7 +277,9 @@ export const DraggableNotesPanel: React.FC = () => {
         "bg-card border border-border",
         "flex items-center gap-2",
         "shadow-md"
-      )}>
+      )}
+        data-testid="notes-board"
+      >
         <StickyNote className="w-4 h-4 text-primary" />
         <input
           type="text"
@@ -282,6 +292,7 @@ export const DraggableNotesPanel: React.FC = () => {
             "bg-muted/50 border border-border rounded",
             "focus:outline-none focus:ring-1 focus:ring-accent/50"
           )}
+          data-testid="note-content"
         />
         <IconButton
           icon={<Plus className="w-4 h-4" />}
@@ -289,6 +300,7 @@ export const DraggableNotesPanel: React.FC = () => {
           onClick={handleCreate}
           size="sm"
           variant="ghost"
+          data-testid="add-note-button"
         />
         <button
           onClick={() => setIsExpanded(false)}

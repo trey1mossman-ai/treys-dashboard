@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { MessageSquare, X, Zap, Calendar, CheckSquare, Mail, Brain, Loader2, AlertCircle, CheckCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PrimaryButton } from '@/components/PrimaryButton'
-import { agentBridge } from '@/services/agentBridge-fixed'
+import { agentBridge } from '@/services/agentBridge'
 
 interface Message {
   id: string
@@ -96,7 +96,7 @@ export function AssistantDock() {
     
     try {
       // Process command through agent bridge with session ID
-      const result = await agentBridge.processNaturalCommand(userMessage.content, { sessionId })
+      const result = await agentBridge.processNaturalCommand(userMessage.content)
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -145,7 +145,7 @@ export function AssistantDock() {
       
       try {
         // Process command through agent bridge with session ID
-        const result = await agentBridge.processNaturalCommand(tool.command, { sessionId })
+        const result = await agentBridge.processNaturalCommand(tool.command)
         
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
