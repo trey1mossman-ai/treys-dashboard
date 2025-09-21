@@ -51,9 +51,14 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
-  
+
   // Skip chrome extensions
   if (url.protocol === 'chrome-extension:') {
+    return;
+  }
+
+  // Skip non-GET requests (POST, PUT, DELETE cannot be cached)
+  if (request.method !== 'GET') {
     return;
   }
   
@@ -62,8 +67,8 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Cache successful responses
-          if (response.status === 200) {
+          // Cache successful GET responses only (POST requests can't be cached)
+          if (response.status === 200 && request.method === 'GET') {
             const responseClone = response.clone();
             caches.open(DYNAMIC_CACHE).then((cache) => {
               cache.put(request, responseClone);

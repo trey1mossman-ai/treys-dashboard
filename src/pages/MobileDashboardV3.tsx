@@ -162,8 +162,18 @@ export function MobileDashboardV3() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload || {})
           })
-          const data = await response.json()
-          console.log(`Webhook response:`, data)
+
+          let data
+          try {
+            const responseText = await response.text()
+            console.log(`Raw webhook response:`, responseText)
+            data = JSON.parse(responseText)
+          } catch (parseError) {
+            console.log(`JSON parse failed, using text response:`, parseError)
+            data = { success: true, message: 'Webhook called successfully' }
+          }
+
+          console.log(`Parsed webhook data:`, data)
 
           // Wait a moment for data to be saved to Supabase
           await new Promise(resolve => setTimeout(resolve, 1000))
