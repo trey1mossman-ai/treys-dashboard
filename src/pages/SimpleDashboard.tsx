@@ -82,14 +82,17 @@ export function SimpleDashboard() {
   const { data: emailsData, isLoading: emailLoading, refetch: refetchEmails } = useOptimizedData<Email[]>(
     'emails',
     async () => {
-      // Use direct n8n webhook - no CORS issues!
-      const webhookUrl = 'https://flow.voxemarketing.com/webhook/c14a535e-80bf-4bd9-9b3d-1001e6917d85';
-      
-      const response = await fetch(webhookUrl, {
-        method: 'GET',
+      // Use Vercel API proxy to avoid CORS
+      const proxyUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+        ? '/api/webhook/emails'
+        : 'http://localhost:3000/api/webhook/emails';
+
+      const response = await fetch(proxyUrl, {
+        method: 'POST',
         headers: {
-          'Accept': 'application/json'
-        }
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: 'fetch', limit: 15 })
       });
       const data = await response.json();
 
@@ -122,14 +125,17 @@ export function SimpleDashboard() {
   const { data: eventsData, isLoading: eventLoading, refetch: refetchEvents } = useOptimizedData<CalendarEvent[]>(
     'events',
     async () => {
-      // Use direct n8n webhook - no CORS issues!
-      const webhookUrl = 'https://flow.voxemarketing.com/webhook/f4fd2f67-df3b-4ee2-b426-944e51d01f28';
-      
-      const response = await fetch(webhookUrl, {
-        method: 'GET',
+      // Use Vercel API proxy to avoid CORS
+      const proxyUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+        ? '/api/webhook/calendar'
+        : 'http://localhost:3000/api/webhook/calendar';
+
+      const response = await fetch(proxyUrl, {
+        method: 'POST',
         headers: {
-          'Accept': 'application/json'
-        }
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: 'sync', days: 7 })
       });
       const data = await response.json();
 

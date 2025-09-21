@@ -47,6 +47,14 @@ export function QuickActions() {
     }
   }
 
+  // Get proxy URLs for avoiding CORS
+  const getProxyUrl = (endpoint: string) => {
+    const base = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+      ? ''
+      : 'http://localhost:3000'
+    return `${base}/api/webhook/${endpoint}`
+  }
+
   const actions = [
     {
       id: 'email-refresh',
@@ -54,7 +62,7 @@ export function QuickActions() {
       icon: Mail,
       action: () => executeQuickAction(
         'email-refresh',
-        'https://flow.voxemarketing.com/webhook/c14a535e-80bf-4bd9-9b3d-1001e6917d85',
+        getProxyUrl('emails'),
         { action: 'refresh', limit: 20 }
       )
     },
@@ -64,7 +72,7 @@ export function QuickActions() {
       icon: Calendar,
       action: () => executeQuickAction(
         'calendar-sync',
-        'https://flow.voxemarketing.com/webhook/f4fd2f67-df3b-4ee2-b426-944e51d01f28',
+        getProxyUrl('calendar'),
         { action: 'sync', days: 7 }
       )
     },
@@ -74,7 +82,7 @@ export function QuickActions() {
       icon: Bot,
       action: () => executeQuickAction(
         'ai-chat',
-        'https://flow.voxemarketing.com/webhook/c0552eb4-8ed7-4a46-b141-492ba7fefd04/chat',
+        getProxyUrl('chat'),
         {
           sessionId: `session-${Date.now()}`,
           action: 'sendMessage',

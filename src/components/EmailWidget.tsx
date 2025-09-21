@@ -71,8 +71,16 @@ export function EmailWidget() {
     setIsRefreshing(true);
     try {
       console.log('🔄 Triggering email refresh webhook...');
-      const response = await fetch('https://flow.voxemarketing.com/webhook/c14a535e-80bf-4bd9-9b3d-1001e6917d85?trigger=manual_refresh', {
-        method: 'GET'
+      const proxyUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+        ? '/api/webhook/emails'
+        : 'http://localhost:3000/api/webhook/emails';
+
+      const response = await fetch(proxyUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: 'refresh', trigger: 'manual_refresh', limit: 20 })
       });
       
       if (response.ok) {

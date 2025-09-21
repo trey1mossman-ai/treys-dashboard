@@ -82,8 +82,16 @@ export function CalendarWidget() {
     setIsRefreshing(true);
     try {
       console.log('🔄 Triggering calendar refresh webhook...');
-      const response = await fetch('https://flow.voxemarketing.com/webhook/f4fd2f67-df3b-4ee2-b426-944e51d01f28?trigger=manual_refresh', {
-        method: 'GET'
+      const proxyUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+        ? '/api/webhook/calendar'
+        : 'http://localhost:3000/api/webhook/calendar';
+
+      const response = await fetch(proxyUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: 'sync', trigger: 'manual_refresh', days: 7 })
       });
       
       if (response.ok) {
