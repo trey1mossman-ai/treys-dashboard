@@ -82,20 +82,13 @@ export function SimpleDashboard() {
   const { data: emailsData, isLoading: emailLoading, refetch: refetchEmails } = useOptimizedData<Email[]>(
     'emails',
     async () => {
-      const apiUrl = window.location.hostname === 'localhost'
-        ? 'http://localhost:8788'
-        : 'https://ailifeassistanttm.com';
-
-      // Trigger workflow
-      await fetch(`${apiUrl}/api/trigger/emails`);
-      // Wait for workflow
-      await new Promise(resolve => setTimeout(resolve, 6000));
-
-      const response = await fetch(`${apiUrl}/api/webhook/emails?t=${Date.now()}`, {
-        cache: 'no-cache',
+      // Use direct n8n webhook - no CORS issues!
+      const webhookUrl = 'https://flow.voxemarketing.com/webhook/c14a535e-80bf-4bd9-9b3d-1001e6917d85';
+      
+      const response = await fetch(webhookUrl, {
+        method: 'GET',
         headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
+          'Accept': 'application/json'
         }
       });
       const data = await response.json();
@@ -129,20 +122,13 @@ export function SimpleDashboard() {
   const { data: eventsData, isLoading: eventLoading, refetch: refetchEvents } = useOptimizedData<CalendarEvent[]>(
     'events',
     async () => {
-      const apiUrl = window.location.hostname === 'localhost'
-        ? 'http://localhost:8788'
-        : 'https://ailifeassistanttm.com';
-
-      // Trigger workflow
-      await fetch(`${apiUrl}/api/trigger/calendar`);
-      // Wait for workflow
-      await new Promise(resolve => setTimeout(resolve, 6000));
-
-      const response = await fetch(`${apiUrl}/api/webhook/calendar?t=${Date.now()}`, {
-        cache: 'no-cache',
+      // Use direct n8n webhook - no CORS issues!
+      const webhookUrl = 'https://flow.voxemarketing.com/webhook/f4fd2f67-df3b-4ee2-b426-944e51d01f28';
+      
+      const response = await fetch(webhookUrl, {
+        method: 'GET',
         headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
+          'Accept': 'application/json'
         }
       });
       const data = await response.json();
@@ -1862,10 +1848,8 @@ export function SimpleDashboard() {
                   setWebhookStatus('🤖 Sending to AI Agent...');
                   
                   try {
-                    // Use our server-side trigger endpoint to avoid CORS
-                    const apiUrl = window.location.hostname === 'localhost' 
-                      ? 'http://localhost:8788' 
-                      : 'https://ailifeassistanttm.com';
+                    // Use direct n8n webhook for AI Agent
+                    const agentWebhook = 'https://flow.voxemarketing.com/webhook/c0552eb4-8ed7-4a46-b141-492ba7fefd04/chat';
                     
                     // Create the message with email context and user's reply
                     const fullMessage = `Here is the reply for email ID ${replyModal.email?.id || 'unknown'}. Please edit this for grammar and professionalism:\n\n"${replyText}"`;
@@ -1882,8 +1866,8 @@ export function SimpleDashboard() {
                       replyLength: replyText.length
                     });
                     
-                    // Send through our server-side proxy
-                    const response = await fetch(`${apiUrl}/api/trigger/reply`, {
+                    // Send directly to n8n webhook
+                    const response = await fetch(agentWebhook, {
                       method: 'POST',
                       headers: { 
                         'Content-Type': 'application/json' 

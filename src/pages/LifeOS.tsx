@@ -5,7 +5,7 @@ import { projectService } from '@/modules/projects/services/projectService';
 import { timelineService } from '@/modules/timeline/services/timelineService';
 import { Project, UnifiedTask } from '@/services/lifeOS-db';
 import { SimpleDashboard } from '@/pages/SimpleDashboard';
-import { webhookService, WEBHOOK_URLS } from '@/services/webhookService';
+import { webhookService } from '@/services/webhookService';
 import { RefreshCw, Mail, Calendar, Bot } from 'lucide-react';
 
 interface TabConfig {
