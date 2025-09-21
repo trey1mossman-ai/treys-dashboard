@@ -321,21 +321,21 @@ export function MobileDashboardV3() {
             icon={Mail}
             label="Refresh Emails"
             actionId="email-refresh"
-            webhook="https://flow.voxemarketing.com/webhook/c14a535e-80bf-4bd9-9b3d-1001e6917d85"
+            webhook="/api/webhook/emails"
             payload={{ action: 'refresh', limit: 20 }}
           />
           <QuickActionButton
             icon={Calendar}
             label="Sync Calendar"
             actionId="calendar-sync"
-            webhook="https://flow.voxemarketing.com/webhook/f4fd2f67-df3b-4ee2-b426-944e51d01f28"
+            webhook="/api/webhook/calendar"
             payload={{ action: 'sync', days: 7 }}
           />
           <QuickActionButton
             icon={Bot}
             label="AI Assistant"
             actionId="ai-chat"
-            webhook="https://flow.voxemarketing.com/webhook/c0552eb4-8ed7-4a46-b141-492ba7fefd04/chat"
+            webhook="/api/webhook/chat"
             payload={{
               sessionId: `session-${Date.now()}`,
               action: 'sendMessage',

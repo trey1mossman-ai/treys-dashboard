@@ -1,15 +1,15 @@
 import { supabase } from './supabase';
 
-// YOUR ACTUAL n8n WEBHOOK ENDPOINTS!
+// VERCEL API PROXY ENDPOINTS (NO CORS ISSUES!)
 const WEBHOOKS = {
-  // Email webhook - direct n8n endpoint
-  email: 'https://flow.voxemarketing.com/webhook/c14a535e-80bf-4bd9-9b3d-1001e6917d85',
-  
-  // Calendar webhook - direct n8n endpoint  
-  calendar: 'https://flow.voxemarketing.com/webhook/f4fd2f67-df3b-4ee2-b426-944e51d01f28',
-  
-  // AI Agent chat - direct n8n endpoint
-  agent: 'https://flow.voxemarketing.com/webhook/c0552eb4-8ed7-4a46-b141-492ba7fefd04/chat',
+  // Email webhook - via Vercel proxy
+  email: '/api/webhook/emails',
+
+  // Calendar webhook - via Vercel proxy
+  calendar: '/api/webhook/calendar',
+
+  // AI Agent chat - via Vercel proxy
+  agent: '/api/webhook/chat',
 };
 
 // Helper function for webhook calls with retry logic
